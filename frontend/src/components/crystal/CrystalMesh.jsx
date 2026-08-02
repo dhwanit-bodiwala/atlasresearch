@@ -16,7 +16,7 @@ export default function CrystalMesh({ crystalState = 'SEED' }) {
   roughnessMap.wrapS = roughnessMap.wrapT = THREE.RepeatWrapping
 
   normalMap.repeat.set(1.5, 1.5)
-  roughnessMap.repeat.set(2, 2)
+  roughnessMap.repeat.set(1.5, 1.5)
 
   const meshes = useMemo(() => {    const clone = scene.clone(true)
     const found = { shell: [], core: [] }
@@ -68,18 +68,18 @@ export default function CrystalMesh({ crystalState = 'SEED' }) {
           matrixAutoUpdate={false}
         >
           <MeshTransmissionMaterial
-            transmission={0.3}
+            transmission={0.25}
             thickness={1.8}
-            roughness={0.35}
+            roughness={0.4}
             ior={1.31}
-            color="#dde4ee"
+            color="#c8d4e8"
             envMapIntensity={0.4}
             samples={1}
             resolution={256}
             frames={1}
             flatShading={true}
             normalMap={normalMap}
-            normalScale={[0.8, 0.8]}
+            normalScale={[1.2, 1.2]}
             roughnessMap={roughnessMap}
           />        </mesh>
       ))}

@@ -1,0 +1,1 @@
+Always read ATLASRESEARCH_MASTER.md before writing any code.
