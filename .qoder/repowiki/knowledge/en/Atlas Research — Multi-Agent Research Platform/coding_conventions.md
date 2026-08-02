@@ -1,0 +1,6 @@
+- All state lives in a single Zustand store (`store/atlasStore.js`) and is mutated only through actions derived from parsed WebSocket events — no ad-hoc state updates.
+- Every animation uses GSAP timelines exclusively; CSS transitions are forbidden for 3D elements and sequencing logic.
+- Custom GLSL shaders live as `.glsl` files under `src/components/crystal/shaders/` and are imported via `vite-plugin-glsl`, never inlined as template strings.
+- Design tokens from `src/styles/globals.css` are immutable — no new colours, fonts, or spacing values may be introduced outside the defined CSS variables.
+- No traditional UI primitives (progress bars, spinners, cards, modals, sidebars) are allowed; status and progress are communicated solely through 3D scene changes (crystal motion, shaft zones, shard states).
+- Three.js geometries and materials are disposed in cleanup functions, and all mesh components are wrapped with `React.memo` to prevent unnecessary re-renders.

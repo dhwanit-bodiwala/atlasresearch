@@ -1,0 +1,1 @@
+A React + Vite single-page application that renders an interactive Three.js crystal scene with post-processing effects, state managed via Zustand and driven by WebSocket events from the backend pipeline.

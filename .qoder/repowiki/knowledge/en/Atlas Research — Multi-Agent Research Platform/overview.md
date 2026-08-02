@@ -1,0 +1,1 @@
+A local three-agent research platform where a React/Three.js frontend renders an immersive crystal visualization driven by WebSocket events from a FastAPI backend that orchestrates Gatherer, Synthesizer, and Critic agents against Ollama LLMs and PostgreSQL+pgvector.

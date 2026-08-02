@@ -1,0 +1,5 @@
+- Global mutable state is defined as a single Zustand store (`atlasStore.js`) with paired selector functions (e.g. `currentScene` / `setScene`) rather than component-local state for cross-component values.
+- Three.js components are organized as small functional React components under `src/components/crystal/`, each encapsulating one visual element (mesh, particles, scene composition) and consuming store state via `useAtlasStore` selectors.
+- Shader code is written as separate `.glsl` files under `src/components/crystal/shaders/` and imported directly, relying on `vite-plugin-glsl` for bundling instead of inline strings.
+- WebSocket event names are centralized as a constant object (`WS_EVENTS` in `utils/wsEventTypes.js`) and referenced symbolically throughout the codebase rather than using magic strings.
+- GPU quality is detected at runtime via `GpuQualityDetector` reading `MAX_TEXTURE_SIZE` from the WebGL context, and rendering parameters (samples, resolution, effect toggles) are adapted based on the low-end flag.

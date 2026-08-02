@@ -1,0 +1,5 @@
+- Each agent module exposes a single `run_<agent>(question, project_tag, emit=None)` entry point that returns either a list of written memory IDs or None on early termination, and accepts an optional `emit` callable for structured event emission.
+- All external I/O (Ollama calls, DB writes/reads) is wrapped with timing logs prefixed `[TIMING]` and paired `emit_event` calls reporting start/completion/duration so the WebSocket consumer can stream progress.
+- Model selection, system prompts, and token limits are centralized in `agent_config.py` under a `models` dict keyed by `CURRENT_TIER`, accessed through `get_model(role)`, `get_system_prompt(role)`, and `get_max_tokens(role)` rather than being hardcoded at call sites.
+- Database interactions go exclusively through `read_write_action.py` functions (`write_memory`, `read_memory`, `count_memories`, `supersede_memories`); modules never import `psycopg2` directly except in that file.
+- Structured WebSocket events follow a uniform shape `{"type": <event_type>, "timestamp": time.time(), "data": {<kwargs>}}` emitted through the shared `ws_events.emit_event` helper, which is a no-op when `emit` is None.

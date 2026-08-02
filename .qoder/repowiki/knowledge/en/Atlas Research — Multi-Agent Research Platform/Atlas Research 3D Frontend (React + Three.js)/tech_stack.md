@@ -1,0 +1,1 @@
+React 18 with Vite 5 as the build tool, Three.js 0.169 rendered through `@react-three/fiber` and `@react-three/drei`, post-processing via `@react-three/postprocessing` + `postprocessing`, Zustand 5 for global state, GSAP for animations, Leva for debug panels, Tailwind CSS for styling, and `vite-plugin-glsl` to bundle GLSL shader files.

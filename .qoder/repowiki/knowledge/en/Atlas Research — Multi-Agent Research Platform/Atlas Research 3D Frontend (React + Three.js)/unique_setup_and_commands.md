@@ -1,0 +1,1 @@
+Development server runs via `npm run dev` (Vite). Build with `npm run build` and preview with `npm run preview`. The GLSL shaders are processed at build time by `vite-plugin-glsl` configured in `vite.config.js`. The 3D model can be regenerated using `scripts/generate_crystal.mjs` or `scripts/generate_crystal.py` before placing the output in `public/crystal.glb`.

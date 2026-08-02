@@ -1,0 +1,1 @@
+React 18 + Vite frontend with @react-three/fiber, @react-three/drei, @react-three/postprocessing, GSAP, Zustand, and Tailwind; FastAPI backend with Ollama LLMs and PostgreSQL+pgvector; unified by WebSocket streaming and a shared event contract defined in `utils/wsEventTypes.js`. Custom GLSL shaders are compiled via `vite-plugin-glsl` and imported natively in JSX.

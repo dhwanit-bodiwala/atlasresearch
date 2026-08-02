@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: ""
+title: Atlas Research — Multi-Agent Research Platform
+scope:
+    - Documentation/
+    - ATLASRESEARCH_MASTER.md
+source_files: []
+depends_on: []
+related_to: []

@@ -1,0 +1,1 @@
+FastAPI backend that orchestrates a multi-agent research pipeline (Gatherer, Synthesizer, Critic) backed by Ollama LLMs and a PostgreSQL+pgvector memory store, exposing REST, WebSocket streaming, chat, and file ingestion endpoints.

@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@300;400&family=Inter:wght@300;400&display=swap');
+
+:root {
+  /* ── Backgrounds ─────────────────────────── */
+  --bg-void:         #c8cdd6;   /* Main void. Near-black, blue-tinted. NEVER pure black. */
+  --bg-surface:      #0f0f14;   /* Elevated HTML surfaces */
+  --bg-shaft-1:      #080810;   /* Gatherer zone walls */
+  --bg-shaft-2:      #09090f;   /* Synthesizer zone walls */
+  --bg-shaft-3:      #0a080f;   /* Critic zone walls — violet shifted */
+
+  /* ── Text ────────────────────────────────── */
+  --text-primary:    #1a1e28;   /* Main text. Cold silver. */
+  --text-secondary:  #4a5060;   /* Muted labels, metadata */
+  --text-ghost:      #2a2d36;   /* Near-invisible, for depth */
+  --text-input:      #0a0d14;   /* User-typed text only. Pure white. */
+
+  /* ── Accent Glows ────────────────────────── */
+  --glow-ice:        #4fc3f7;   /* Primary: crystal, Gatherer, particles */
+  --glow-deep:       #818cf8;   /* Synthesizer layer, compression */
+  --glow-critic:     #a78bfa;   /* Critic layer, violet */
+  --glow-flag:       #f97316;   /* Flagged items ONLY. Warm orange. */
+  --glow-success:    #34d399;   /* NO_ISSUES confirmation. Cold green. */
+  --glow-error:      #ef4444;   /* Pipeline errors only */
+
+  /* ── Borders ─────────────────────────────── */
+  --border-dim:      #1a1a24;
+  --border-glow:     rgba(79, 195, 247, 0.2);
+  --border-active:   rgba(79, 195, 247, 0.5);
+
+  /* ── Typography ──────────────────────────── */
+  --font-display:    'Space Grotesk', sans-serif;
+  --font-mono:       'JetBrains Mono', monospace;
+  --font-body:       'Inter', sans-serif;
+
+  /* ── Type Scale ──────────────────────────── */
+  --text-2xs:   0.55rem;
+  --text-xs:    0.65rem;
+  --text-sm:    0.8rem;
+  --text-base:  1rem;
+  --text-lg:    1.25rem;
+  --text-xl:    1.75rem;
+  --text-ring:  clamp(0.55rem, 1vw, 0.7rem);   /* Ring text around crystal */
+
+  /* ── Spacing ─────────────────────────────── */
+  --space-unit:  8px;   /* All spacing is multiples of 8 */
+
+  /* ── Z-layers ────────────────────────────── */
+  --z-canvas:    0;
+  --z-ui:       10;
+  --z-overlay:  20;
+  --z-top:      30;
+
+  /* ── Timing ──────────────────────────────── */
+  --transition-fast:    0.2s;
+  --transition-med:     0.4s;
+  --transition-slow:    0.8s;
+  --transition-cinematic: 1.4s;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  width: 100%; height: 100%;
+  background: var(--bg-void);
+  overflow: hidden;
+  cursor: none;   /* Custom cursor — crosshair dot that reacts to crystal proximity */
+}
+
+/* Custom cursor */
+.cursor {
+  position: fixed;
+  width: 6px; height: 6px;
+  background: var(--glow-ice);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: var(--z-top);
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, opacity 0.15s;
+  mix-blend-mode: screen;
+}
+.cursor.near-crystal {
+  width: 20px; height: 20px;
+  background: transparent;
+  border: 1px solid var(--glow-ice);
+  opacity: 0.6;
+}

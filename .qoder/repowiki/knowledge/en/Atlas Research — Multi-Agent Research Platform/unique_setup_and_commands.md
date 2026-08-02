@@ -1,0 +1,1 @@
+Development runs four local services simultaneously: FastAPI on port 8000, Vite dev server on 5173, Ollama on 11434, and PostgreSQL on 5432. The frontend must be built in strict phase order (Scaffold → Shaders → Crystal → Entry → Shaft+WS → Emergence → Chat → Polish) as specified in ATLASRESEARCH_MASTER.md section 20, with each phase required to work end-to-end before proceeding.
