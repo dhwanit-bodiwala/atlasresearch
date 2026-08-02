@@ -31,25 +31,20 @@ function SceneContents({ chromaticRef, isLowEnd }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const dofRef = useRef()
 
-  const samples = isLowEnd ? 4 : 6
-  const resolution = isLowEnd ? 256 : 512
-
   return (
     <>
-      <color attach="background" args={['#c8cdd6']} />
-      <fog attach="fog" args={['#c8cdd6', 5, 15]} />
+      <color attach="background" args={['#9aa3b0']} />
+      <fog attach="fog" args={['#9aa3b0', 8, 20]} />
 
-      <Environment files="/hdri/kloofendal_puresky.hdr" background={false} />
+      <Environment files="/hdri/misty_morning_crystal.hdr" background={false} />
 
-      <ambientLight color="#dde4ee" intensity={0.6} />
-      <directionalLight color="#ffffff" intensity={2.2} position={[3, 6, 4]} />
-      <directionalLight color="#7a8daa" intensity={1.0} position={[-4, -2, -3]} />
+      <ambientLight color="#dde4ee" intensity={0.15} />
+      <directionalLight color="#ffffff" intensity={4.5} position={[3, 2, 1]} />
+      <directionalLight color="#6a7a9a" intensity={2.0} position={[-3, -1, -2]} />
+      <directionalLight color="#a8b8d0" intensity={1.5} position={[-2, -3, -2]} />
+      <pointLight color="#ffffff" intensity={2.0} position={[1, 2, 2]} distance={8} />
 
-      <CrystalMesh
-        crystalState={crystalState}
-        samples={samples}
-        resolution={resolution}
-      />
+      <CrystalMesh crystalState={crystalState} />
       <CrystalParticles />
 
       <EffectComposer multisampling={isLowEnd ? 0 : 4}>
@@ -102,7 +97,7 @@ const CrystalScene = forwardRef(function CrystalScene(_props, chromaticRef) {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 0.9,
       }}
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ fov: 50, position: [0, 0, 6], near: 0.1, far: 100 }}
       style={{ position: 'fixed', inset: 0, cursor: 'none' }}
     >

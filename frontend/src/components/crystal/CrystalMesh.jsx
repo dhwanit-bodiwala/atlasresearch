@@ -1,19 +1,24 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { MeshTransmissionMaterial, useGLTF } from '@react-three/drei'
+import { MeshTransmissionMaterial, useGLTF, useTexture } from '@react-three/drei'
+import * as THREE from 'three'
 import useAtlasStore from '../../store/atlasStore'
 
-export default function CrystalMesh({
-  crystalState = 'SEED',
-  samples = 6,
-  resolution = 512,
-}) {
+export default function CrystalMesh({ crystalState = 'SEED' }) {
   const groupRef = useRef()
   const { scene } = useGLTF('/crystal.glb')
   const question = useAtlasStore((s) => s.question)
 
-  const meshes = useMemo(() => {
-    const clone = scene.clone(true)
+  const normalMap = useTexture('/textures/Snow013_2K-JPG_NormalGL.jpg')
+  const roughnessMap = useTexture('/textures/Snow013_2K-JPG_Roughness.jpg')
+
+  normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping
+  roughnessMap.wrapS = roughnessMap.wrapT = THREE.RepeatWrapping
+
+  normalMap.repeat.set(1.5, 1.5)
+  roughnessMap.repeat.set(2, 2)
+
+  const meshes = useMemo(() => {    const clone = scene.clone(true)
     const found = { shell: [], core: [] }
 
     clone.traverse((child) => {
@@ -54,7 +59,7 @@ export default function CrystalMesh({
   })
 
   return (
-    <group ref={groupRef} scale={1.4}>
+    <group ref={groupRef} scale={1.1}>
       {meshes.shell.map((mesh, i) => (
         <mesh
           key={`shell-${i}`}
@@ -63,21 +68,20 @@ export default function CrystalMesh({
           matrixAutoUpdate={false}
         >
           <MeshTransmissionMaterial
-            transmission={0.65}
-            thickness={1.4}
-            roughness={0.45}
+            transmission={0.3}
+            thickness={1.8}
+            roughness={0.35}
             ior={1.31}
-            chromaticAberration={0.04}
-            distortion={0.15}
-            distortionScale={0.3}
-            temporalDistortion={0.1}
-            color="#eef1f5"
-            envMapIntensity={0.6}
-            samples={samples}
-            resolution={resolution}
+            color="#dde4ee"
+            envMapIntensity={0.4}
+            samples={1}
+            resolution={256}
+            frames={1}
             flatShading={true}
-          />
-        </mesh>
+            normalMap={normalMap}
+            normalScale={[0.8, 0.8]}
+            roughnessMap={roughnessMap}
+          />        </mesh>
       ))}
       {meshes.core.map((mesh, i) => (
         <mesh

@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import particleVertex from './shaders/particleVertex.glsl'
 import particleFrag from './shaders/particleFrag.glsl'
 
-const PARTICLE_COUNT = 1200
+const PARTICLE_COUNT = 250
 const WRAP_RADIUS = 3.5
 
 export default function CrystalParticles() {
@@ -45,7 +45,7 @@ export default function CrystalParticles() {
     () => ({
       uTime: { value: 0 },
       uPixelRatio: { value: typeof window !== 'undefined' ? window.devicePixelRatio : 1 },
-      uSize: { value: 18.0 },
+      uSize: { value: 6.0 },
     }),
     [],
   )
@@ -121,6 +121,7 @@ export default function CrystalParticles() {
         fragmentShader={particleFrag}
         uniforms={uniforms}
         transparent
+        opacity={0.3}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
