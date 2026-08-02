@@ -84,3 +84,13 @@ html, body, #root {
   border: 1px solid var(--glow-ice);
   opacity: 0.6;
 }
+
+@keyframes spin {
+  from { transform-origin: center; transform: rotate(0deg); }
+  to { transform-origin: center; transform: rotate(360deg); }
+}
+
+@keyframes ringRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
