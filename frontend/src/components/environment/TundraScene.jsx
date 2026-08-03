@@ -16,6 +16,7 @@ import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import FrozenLake from './FrozenLake'
 import IceCrack from './IceCrack'
+import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
 function GpuQualityDetector({ onDetect }) {
@@ -38,6 +39,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd }) {
 
       <TundraSky />
       <TundraGround />
+      <HorizonRidge />
       <FrozenLake />
       <IceCrack scrollProgress={scrollProgress.current} />
       <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} />
