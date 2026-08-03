@@ -9,6 +9,7 @@ import {
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import { useState, useCallback, useEffect, useRef } from 'react'
+import gsap from 'gsap'
 import useAtlasStore from '../../store/atlasStore'
 import CrystalMesh from '../crystal/CrystalMesh'
 import CrystalParticles from '../crystal/CrystalParticles'
@@ -66,7 +67,51 @@ function FogController({ scrollProgress, ambientRef }) {
   return null
 }
 
-function SceneContents({ scrollProgress, targetProgress, isLowEnd }) {
+function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
+  const crystalState = useAtlasStore((s) => s.crystalState)
+  const setScene = useAtlasStore((s) => s.setScene)
+  const hasRun = useRef(false)
+
+  useEffect(() => {
+    if (crystalState !== 'DESCENDING') return
+    if (hasRun.current) return
+    hasRun.current = true
+
+    crystalYRef.current.value = 5.5
+    crackScaleRef.current.value = 1.6
+
+    const tl = gsap.timeline()
+
+    tl.to(crackScaleRef.current, {
+      value: 9.0,
+      duration: 1.4,
+      ease: 'power2.inOut',
+    }, 0)
+
+    tl.call(() => {
+      fallPhaseRef.current = 'follow'
+    }, null, 0.6)
+
+    tl.to(crystalYRef.current, {
+      value: -55,
+      duration: 4.0,
+      ease: 'power2.in',
+    }, 0.9)
+
+    tl.call(() => {
+      fallPhaseRef.current = 'parallel'
+    }, null, 2.2)
+
+    tl.call(() => {
+      setScene('descent')
+    }, null, 4.8)
+
+  }, [crystalState])
+
+  return null
+}
+
+function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, crackScaleRef, fallPhaseRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const ambientRef = useRef()
 
@@ -79,15 +124,17 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd }) {
       <TundraGround />
       <HorizonRidge />
       <FrozenLake />
-      <IceCrack scrollProgress={scrollProgress} />
-      <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} />
+      <IceCrack scrollProgress={scrollProgress} crackScaleRef={crackScaleRef} />
+      <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
 
       <ambientLight ref={ambientRef} color="#c8d8e8" intensity={1.4} />
       <directionalLight color="#f0e8d8" intensity={2.0} position={[-80, 12, -100]} />
       <directionalLight color="#c8ddf0" intensity={0.8} position={[30, 20, 30]} />
 
-      <CameraRig scrollProgress={scrollProgress} targetProgress={targetProgress} />
+      <CameraRig scrollProgress={scrollProgress} targetProgress={targetProgress} crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} />
+
+      <FallSequencer crystalYRef={crystalYRef} crackScaleRef={crackScaleRef} fallPhaseRef={fallPhaseRef} />
 
       <FogController scrollProgress={scrollProgress} ambientRef={ambientRef} />
 
@@ -114,6 +161,10 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd }) {
 export default function TundraScene({ scrollProgress, targetProgress }) {
   const [isLowEnd, setIsLowEnd] = useState(false)
   const onDetect = useCallback((low) => setIsLowEnd(low), [])
+  
+  const crystalYRef = useRef({ value: null })
+  const crackScaleRef = useRef({ value: null })
+  const fallPhaseRef = useRef(null)
 
   return (
     <Canvas
@@ -129,7 +180,7 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
       style={{ position: 'fixed', inset: 0 }}
     >
       <GpuQualityDetector onDetect={onDetect} />
-      <SceneContents scrollProgress={scrollProgress} targetProgress={targetProgress} isLowEnd={isLowEnd} />
+      <SceneContents scrollProgress={scrollProgress} targetProgress={targetProgress} isLowEnd={isLowEnd} crystalYRef={crystalYRef} crackScaleRef={crackScaleRef} fallPhaseRef={fallPhaseRef} />
     </Canvas>
   )
 }

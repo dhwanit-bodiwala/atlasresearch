@@ -51,8 +51,6 @@ export default function EntryScene() {
     setQuestion(inputValue.trim())
     setInputMode(false)
     setCrystalState('DESCENDING')
-    setScene('descent')
-    console.log('Transitioning to descent...')
   }
 
   return (

@@ -4,7 +4,7 @@ import { MeshTransmissionMaterial, useGLTF, useTexture } from '@react-three/drei
 import * as THREE from 'three'
 import useAtlasStore from '../../store/atlasStore'
 
-export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0], scale = 2.5 }) {
+export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0], scale = 2.5, crystalYRef = null }) {
   const groupRef = useRef()
   const { scene } = useGLTF('/crystal.glb')
   const question = useAtlasStore((s) => s.question)
@@ -51,6 +51,9 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
       groupRef.current.rotation.x += 0.0005
     } else if (crystalState === 'EMERGED') {
       groupRef.current.rotation.y += 0.001
+    }
+    if (crystalYRef?.current !== null && crystalYRef?.current !== undefined) {
+      groupRef.current.position.y = crystalYRef.current.value
     }
   })
 

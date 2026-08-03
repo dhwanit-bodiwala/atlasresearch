@@ -3,8 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
 import * as THREE from 'three'
 
-export default function IceCrack({ scrollProgress }) {
+export default function IceCrack({ scrollProgress, crackScaleRef = null }) {
   const materialRefs = useRef([])
+  const groupRef = useRef()
 
   useFrame(() => {
     const t = scrollProgress.current
@@ -15,6 +16,10 @@ export default function IceCrack({ scrollProgress }) {
       m.fog = false
       m.opacity = idx % 2 === 0 ? opacity : opacity * 0.25
     })
+    if (groupRef.current && crackScaleRef?.current !== null) {
+      const s = crackScaleRef.current.value ?? 1.6
+      groupRef.current.scale.setScalar(s)
+    }
   })
 
   const arms = useMemo(() => [
@@ -28,7 +33,7 @@ export default function IceCrack({ scrollProgress }) {
   ], [])
 
   return (
-    <group position={[0, -1.01, 0]} scale={1.6}>
+    <group ref={groupRef} position={[0, -1.01, 0]} scale={1.6}>
       {arms.map((arm, i) => (
         <group key={i}>
           {/* Pass 1 — dark fissure */}
