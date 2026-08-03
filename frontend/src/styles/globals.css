@@ -74,3 +74,25 @@ html, body, #root {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@keyframes crystallise-breathe {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 1; }
+}
+
+.crystallise-hint {
+  animation: crystallise-breathe 3s ease-in-out infinite;
+}
+
+.atlas-input::placeholder {
+  color: rgba(26, 30, 40, 0.35);
+  letter-spacing: 4px;
+}
+
+.atlas-input-overlay::placeholder {
+  color: transparent;
+}
+
+.atlas-input-overlay::selection {
+  background: rgba(255,255,255,0.15);
+}
