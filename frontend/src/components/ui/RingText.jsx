@@ -1,9 +1,7 @@
-import { useEffect, useRef } from 'react'
-
 export default function RingText() {
-  const cx = window.innerWidth / 2 - 60
-  const cy = window.innerHeight / 2 - 50
-  const r = 420
+  const cx = window.innerWidth * 0.52
+  const cy = window.innerHeight * 0.35
+  const r = window.innerHeight * 0.38
 
   return (
     <svg
@@ -26,7 +24,7 @@ export default function RingText() {
       <g style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'ringRotate 20s linear infinite' }}>
         <text
           fontFamily="JetBrains Mono, monospace"
-          fontSize="17"
+          fontSize="13"
           letterSpacing="4"
           fill="#4a5060"
           opacity="0.6"

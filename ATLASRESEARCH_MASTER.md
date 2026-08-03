@@ -92,19 +92,49 @@ The backend is complete. This document covers the frontend only.
 
 This metaphor governs **every single visual decision**. There are no exceptions.
 
-### The narrative:
-A question enters as raw, formless energy. Warm-edged. Turbulent. Chaotic. The pipeline forces it through three layers of cold intelligence. Raw material is gathered — jagged shards of data from the web. They are compressed into structure by the Synthesizer. The Critic stress-tests what was formed — fracture lines appear on the surface, either healing or becoming permanent fault lines. What emerges is a **crystal** — faceted, dense, cold, permanent. Knowledge made solid.
+### The world:
+An arctic tundra at dawn, above a frozen lake. A single crystal floats 
+above the ice in the distance. Movement is forward/backward only — 
+scroll dollies the camera along a fixed path toward the crystal. No 
+free look, no left/right.
 
-**Warm → Cold. Chaos → Order. Fluid → Solid. Question → Crystal.**
+### The narrative — five acts:
+1. **Entry (Hero)** — vast tundra, dawn light, crystal small and distant 
+   over the frozen lake.
+2. **Approach** — scroll-driven dolly toward the crystal. Tundra fog 
+   crossfades seamlessly into the close misty crystal scene as the 
+   camera nears — no hard cut between environments.
+3. **Threshold** — crystal centered, current interaction (click → input 
+   → submit). The lake ice directly beneath the crystal shows a visible 
+   crack.
+4. **Descent** — on submit, the crystal falls through the crack into 
+   the lake. The three pipeline layers (Gatherer/Synthesizer/Critic) 
+   are experienced as depth beneath the ice.
+5. **Emergence + Chat** — crystal resurfaces through the crack when 
+   research completes. For follow-up chat, the crystal develops a 
+   glowing internal crack; the camera zooms INTO the crystal interior, 
+   and chat happens inside the frosted interior shell — reusing 
+   existing crystal material/geometry rather than a new environment.
+
+**Warm → Cold. Chaos → Order. Fluid → Solid. Distant → Close → Beneath → Within.**
 
 ### The emotional arc:
-- **Entry:** Anticipation. Standing at the edge of something consequential.
-- **Descent:** Witnessing. Watching intelligence work in real time, depth by depth.
-- **Emergence:** Satisfaction. Cold, perfect, earned.
-- **Chat:** Dialogue. The crystal persists as context. The conversation flows beneath it.
+- **Entry/Approach:** Anticipation. Discovering something in an empty, 
+  vast place.
+- **Threshold:** Focus. Standing at the edge of something consequential.
+- **Descent:** Witnessing. Watching intelligence work in real time, 
+  depth by depth, beneath the ice.
+- **Emergence:** Satisfaction. Cold, perfect, earned, resurfacing.
+- **Chat:** Dialogue, from within the crystal itself.
 
 ### What does NOT map to crystallisation:
-Loading spinners, progress bars, status badges, step indicators, sidebars, cards, modals — none of these exist in this experience. The **crystal IS the loading state**. The **depth position IS the progress**. The **shaft IS the status**. Never build a UI element that duplicates what the 3D scene already communicates.
+Loading spinners, progress bars, status badges, step indicators, sidebars, cards, modals — none of these exist in this experience. The **crystal IS the loading state**. The **depth position IS the progress**. The **crack and shaft ARE the status**. Never build a UI element that duplicates what the 3D scene already communicates.
+
+### Status note (as of this revision):
+RingText.jsx (orbiting SVG text ring) is retired — do not use it in 
+new builds. The click → input → submit flow already built for the old 
+Entry Scene carries forward unchanged into Act 3 (Threshold); only the 
+lake crack visual is new there.
 
 ---
 
@@ -1564,6 +1594,10 @@ Bloom must be visible on crystal edges.
 
 ---
 
+> ⚠️ SUPERSEDED — RingText and CrystalShatter below are retired per 
+> Section 3 revision. The click→input→submit logic they describe still 
+> applies inside Act 3 (Threshold), built without RingText or shatter-decompose.
+
 ### PROMPT: PHASE 4 — Entry Scene
 
 ```
@@ -1688,21 +1722,24 @@ No borders, no background cards. Text in the void only.
 ## 20. BUILD ORDER — STRICT SEQUENCE
 
 ```
-Phase 1  │  Scaffold + store + event constants
-Phase 2  │  All 5 GLSL shader files — written in full
-Phase 3  │  CrystalScene + CrystalMesh + CrystalParticles
-         │  ⛔ STOP. Crystal must look like real glass/ice before proceeding.
-Phase 4  │  Entry Scene: ring text, shatter, input, scramble, submit transition
-         │  ⛔ STOP. Entry experience must feel complete before proceeding.
-Phase 5  │  Depth shaft + WebSocket hook + full event parsing + DataShards
+Phase 1  │  Scaffold + store + event constants                    ✅ DONE
+Phase 2  │  All 5 GLSL shader files — written in full              ✅ DONE
+Phase 3  │  CrystalScene + CrystalMesh + CrystalParticles          ✅ DONE
+         │  Crystal looks like real ice/glass, texture, HDRI, lighting locked.
+Stage 1  │  Tundra hero environment + scroll-driven camera dolly
+         │  ⛔ STOP. Environment must feel vast and atmospheric before proceeding.
+Stage 2  │  Seamless fog/environment crossfade: tundra → misty crystal scene
+         │  ⛔ STOP. Transition must be seamless, no hard cut, before proceeding.
+Stage 3  │  Lake ice crack visual beneath crystal (Threshold act)
+         │  ⛔ STOP. Crack must read clearly against ice before proceeding.
+Stage 4  │  Fall-through-crack animation synced to pipeline stages (Descent)
          │  ⛔ STOP. Connect to live backend. Verify shards appear correctly.
-Phase 6  │  Emergence scene + synthesis faces + flag fractures
-Phase 7  │  Chat layer + POST /chat integration + correction flow
+Stage 5  │  Resurface + interior-crystal chat transition (Emergence + Chat)
 Phase 8  │  Polish: GPU quality detection, dispose cleanup, VRAM swap animation,
          │  custom cursor, mobile graceful degradation, leva panel removal
 ```
 
-The ⛔ stops are not optional. Each phase must work end-to-end before the next begins.
+The ⛔ stops are not optional. Each stage must work end-to-end before the next begins.
 
 ---
 
