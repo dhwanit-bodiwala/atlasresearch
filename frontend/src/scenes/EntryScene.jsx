@@ -1,13 +1,11 @@
 import { useRef, useState, useEffect } from 'react'
-import { gsap } from 'gsap'
-import CrystalScene from '../components/crystal/CrystalScene'
-import RingText from '../components/ui/RingText'
+import TundraScene from '../components/environment/TundraScene'
 import ProjectTagPill from '../components/ui/ProjectTagPill'
 import { TextScramble } from '../utils/textScramble'
 import useAtlasStore from '../store/atlasStore'
+import { useScrollCamera } from '../hooks/useScrollCamera'
 
 export default function EntryScene() {
-  const chromaticRef = useRef()
   const [hasClicked, setHasClicked] = useState(false)
   const [showInput, setShowInput] = useState(false)
   const [inputValue, setInputValue] = useState('')
@@ -15,6 +13,7 @@ export default function EntryScene() {
   const textScrambleRef = useRef()
   const setQuestion = useAtlasStore((s) => s.setQuestion)
   const setCrystalState = useAtlasStore((s) => s.setCrystalState)
+  const { scrollProgress, targetProgress } = useScrollCamera()
 
   useEffect(() => {
     if (clickTextRef.current) {
@@ -26,36 +25,7 @@ export default function EntryScene() {
     if (hasClicked) return
     setHasClicked(true)
 
-    // (a) Trigger chromatic aberration spike
-    if (chromaticRef.current) {
-      gsap.to(chromaticRef.current.offset, {
-        x: 0.02,
-        y: 0.02,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1,
-        onComplete: () => {
-          gsap.to(chromaticRef.current.offset, {
-            x: 0,
-            y: 0,
-            duration: 0.8,
-            ease: 'power2.out'
-          })
-        }
-      })
-    }
-
-    // (b) RingText fades out
-    const ringTextElement = document.querySelector('[data-ring-text]')
-    if (ringTextElement) {
-      gsap.to(ringTextElement, {
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power2.out'
-      })
-    }
-
-    // (c) "CLICK TO CRYSTALLISE" text scrambles then reveals input placeholder
+    // "CLICK TO CRYSTALLISE" text scrambles then reveals input placeholder
     if (textScrambleRef.current) {
       textScrambleRef.current.setText('WHAT DO YOU WANT TO RESEARCH?').then(() => {
         setTimeout(() => {
@@ -75,17 +45,15 @@ export default function EntryScene() {
     }
   }
 
+  const canShowUI = scrollProgress.current >= 0.95
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-      <CrystalScene ref={chromaticRef} />
-      
-      <div data-ring-text>
-        <RingText />
-      </div>
+      <TundraScene scrollProgress={scrollProgress} targetProgress={targetProgress} />
       
       <ProjectTagPill />
       
-      {!showInput && (
+      {canShowUI && !showInput && (
         <div
           ref={clickTextRef}
           onClick={handleCrystalClick}
@@ -110,7 +78,7 @@ export default function EntryScene() {
         </div>
       )}
       
-      {showInput && (
+      {canShowUI && showInput && (
         <div
           style={{
             position: 'absolute',
