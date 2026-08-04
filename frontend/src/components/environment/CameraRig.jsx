@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useRef } from 'react'
 
-const START_POS = new THREE.Vector3(0, 2.5, 90)
+const START_POS = new THREE.Vector3(0, 4, 90)
 const START_TARGET = new THREE.Vector3(0, 5, 0)
 const END_POS = new THREE.Vector3(0, 3, 18)
 const END_TARGET = new THREE.Vector3(0, 5, 0)
@@ -17,7 +17,7 @@ export default function CameraRig({ scrollProgress, targetProgress, crystalYRef 
       const cy = crystalYRef.current.value
       camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.1)
       camera.position.y = THREE.MathUtils.lerp(camera.position.y, cy + 6, 0.08)
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 5, 0.08)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 8, 0.08)
       camera.lookAt(0, cy, 0)
       return
     }
@@ -26,7 +26,7 @@ export default function CameraRig({ scrollProgress, targetProgress, crystalYRef 
       const cy = crystalYRef.current.value
       camera.position.x = THREE.MathUtils.lerp(camera.position.x, 5, 0.06)
       camera.position.y = THREE.MathUtils.lerp(camera.position.y, cy + 1, 0.1)
-      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 3, 0.06)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 10, 0.06)
       camera.lookAt(0, cy, 0)
       return
     }

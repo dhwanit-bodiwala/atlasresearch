@@ -17,6 +17,7 @@ import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import FrozenLake from './FrozenLake'
 import IceCrack from './IceCrack'
+import IceFracture from './IceFracture'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
@@ -45,6 +46,7 @@ const _bgColor  = new THREE.Color()
 
 function FogController({ scrollProgress, ambientRef }) {
   const { scene } = useThree()
+  const crystalState = useAtlasStore((s) => s.crystalState)
 
   useFrame(() => {
     const t = scrollProgress.current
@@ -62,6 +64,15 @@ function FogController({ scrollProgress, ambientRef }) {
     if (ambientRef.current) {
       ambientRef.current.intensity = THREE.MathUtils.lerp(1.4, 2.2, t)
     }
+
+    if (crystalState === 'DESCENDING') {
+      _bgColor.lerp(new THREE.Color('#060a12'), 0.04)
+      scene.background = _bgColor.clone()
+      if (scene.fog) {
+        scene.fog.far = THREE.MathUtils.lerp(scene.fog.far, 5, 0.04)
+        scene.fog.color.lerp(new THREE.Color('#060a12'), 0.04)
+      }
+    }
   })
 
   return null
@@ -77,16 +88,26 @@ function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
     if (hasRun.current) return
     hasRun.current = true
 
-    crystalYRef.current.value = 5.5
+    crystalYRef.current.value = 3.5
     crackScaleRef.current.value = 1.6
 
     const tl = gsap.timeline()
 
+    // Replace existing crack tween with two-stage fracture:
+
+    // Stage 1 — initial fracture (sharp, fast)
     tl.to(crackScaleRef.current, {
-      value: 9.0,
-      duration: 1.4,
-      ease: 'power2.inOut',
+      value: 5.0,
+      duration: 0.5,
+      ease: 'power4.out',
     }, 0)
+
+    // Stage 2 — fracture propagates outward (slower, massive)
+    tl.to(crackScaleRef.current, {
+      value: 18.0,
+      duration: 2.5,
+      ease: 'power2.inOut',
+    }, 0.5)
 
     tl.call(() => {
       fallPhaseRef.current = 'follow'
@@ -96,17 +117,17 @@ function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
       value: -55,
       duration: 4.0,
       ease: 'power2.in',
-    }, 0.9)
+    }, 1.6)
 
     tl.call(() => {
       fallPhaseRef.current = 'parallel'
-    }, null, 2.2)
+    }, null, 2.9)
 
     tl.call(() => {
       setScene('descent')
-    }, null, 4.8)
+    }, null, 3.8)
 
-  }, [crystalState])
+  }, [crystalState, setScene])
 
   return null
 }
@@ -124,6 +145,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       <TundraGround />
       <HorizonRidge />
       <FrozenLake />
+      <IceFracture />
       <IceCrack scrollProgress={scrollProgress} crackScaleRef={crackScaleRef} />
       <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />

@@ -52,7 +52,7 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
     } else if (crystalState === 'EMERGED') {
       groupRef.current.rotation.y += 0.001
     }
-    if (crystalYRef?.current !== null && crystalYRef?.current !== undefined) {
+    if (crystalYRef?.current?.value !== null && crystalYRef?.current?.value !== undefined) {
       groupRef.current.position.y = crystalYRef.current.value
     }
   })
