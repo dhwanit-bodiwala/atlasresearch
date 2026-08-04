@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useRef } from 'react'
 
 const START_POS = new THREE.Vector3(0, 4, 90)
-const START_TARGET = new THREE.Vector3(0, 5, 0)
+const START_TARGET = new THREE.Vector3(0, 0, 0)
 const END_POS = new THREE.Vector3(0, 3, 18)
 const END_TARGET = new THREE.Vector3(0, 5, 0)
 
@@ -32,9 +32,9 @@ export default function CameraRig({ scrollProgress, targetProgress, crystalYRef 
     }
 
     scrollProgress.current = THREE.MathUtils.lerp(
-     scrollProgress.current,
-     targetProgress.current,
-     0.15
+      scrollProgress.current,
+      targetProgress.current,
+      0.15
     )
     const t = scrollProgress.current
     camera.position.lerpVectors(START_POS, END_POS, t)

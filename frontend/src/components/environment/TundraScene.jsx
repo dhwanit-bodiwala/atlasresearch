@@ -15,9 +15,7 @@ import CrystalMesh from '../crystal/CrystalMesh'
 import CrystalParticles from '../crystal/CrystalParticles'
 import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
-import FrozenLake from './FrozenLake'
-import IceCrack from './IceCrack'
-import IceFracture from './IceFracture'
+import LakeBody from './LakeBody'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
@@ -32,17 +30,17 @@ function GpuQualityDetector({ onDetect }) {
 }
 
 // Fog states
-const FOG_NEAR_START = 40
-const FOG_FAR_START  = 180
-const FOG_NEAR_END   = 10
-const FOG_FAR_END    = 42
+const FOG_NEAR_START = 80
+const FOG_FAR_START = 320
+const FOG_NEAR_END = 60
+const FOG_FAR_END = 200
 
 const FOG_COLOR_START = new THREE.Color('#9aaab8')
-const FOG_COLOR_END   = new THREE.Color('#c8d8e2')
-const BG_COLOR_START  = new THREE.Color('#8a9aa8')
-const BG_COLOR_END    = new THREE.Color('#8fa0ae')
+const FOG_COLOR_END = new THREE.Color('#c8d8e2')
+const BG_COLOR_START = new THREE.Color('#8a9aa8')
+const BG_COLOR_END = new THREE.Color('#8fa0ae')
 
-const _bgColor  = new THREE.Color()
+const _bgColor = new THREE.Color()
 
 function FogController({ scrollProgress, ambientRef }) {
   const { scene } = useThree()
@@ -54,7 +52,7 @@ function FogController({ scrollProgress, ambientRef }) {
 
     if (fog) {
       fog.near = THREE.MathUtils.lerp(FOG_NEAR_START, FOG_NEAR_END, t)
-      fog.far  = THREE.MathUtils.lerp(FOG_FAR_START,  FOG_FAR_END,  t)
+      fog.far = THREE.MathUtils.lerp(FOG_FAR_START, FOG_FAR_END, t)
       fog.color.lerpColors(FOG_COLOR_START, FOG_COLOR_END, t)
     }
 
@@ -78,7 +76,7 @@ function FogController({ scrollProgress, ambientRef }) {
   return null
 }
 
-function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
+function FallSequencer({ crystalYRef, fallPhaseRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const setScene = useAtlasStore((s) => s.setScene)
   const hasRun = useRef(false)
@@ -89,25 +87,8 @@ function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
     hasRun.current = true
 
     crystalYRef.current.value = 3.5
-    crackScaleRef.current.value = 1.6
 
     const tl = gsap.timeline()
-
-    // Replace existing crack tween with two-stage fracture:
-
-    // Stage 1 — initial fracture (sharp, fast)
-    tl.to(crackScaleRef.current, {
-      value: 5.0,
-      duration: 0.5,
-      ease: 'power4.out',
-    }, 0)
-
-    // Stage 2 — fracture propagates outward (slower, massive)
-    tl.to(crackScaleRef.current, {
-      value: 18.0,
-      duration: 2.5,
-      ease: 'power2.inOut',
-    }, 0.5)
 
     tl.call(() => {
       fallPhaseRef.current = 'follow'
@@ -132,31 +113,30 @@ function FallSequencer({ crystalYRef, crackScaleRef, fallPhaseRef }) {
   return null
 }
 
-function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, crackScaleRef, fallPhaseRef }) {
+function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const ambientRef = useRef()
 
   return (
     <>
       <color attach="background" args={['#8a9aa8']} />
-      <fog attach="fog" args={['#9aaab8', 40, 180]} />
+      <fog attach="fog" args={['#9aaab8', 80, 320]} />
 
       <TundraSky />
-      <TundraGround />
+      {/* Pass scrollProgress to TundraGround so it can fade out */}
+      <TundraGround scrollProgress={scrollProgress} />
       <HorizonRidge />
-      <FrozenLake />
-      <IceFracture />
-      <IceCrack scrollProgress={scrollProgress} crackScaleRef={crackScaleRef} />
+      <LakeBody />
       <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
 
       <ambientLight ref={ambientRef} color="#c8d8e8" intensity={1.4} />
-      <directionalLight color="#f0e8d8" intensity={2.0} position={[-80, 12, -100]} />
+      <directionalLight color="#f0e8d8" intensity={1.1} position={[-80, 12, -100]} />
       <directionalLight color="#c8ddf0" intensity={0.8} position={[30, 20, 30]} />
 
       <CameraRig scrollProgress={scrollProgress} targetProgress={targetProgress} crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} />
 
-      <FallSequencer crystalYRef={crystalYRef} crackScaleRef={crackScaleRef} fallPhaseRef={fallPhaseRef} />
+      <FallSequencer crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} />
 
       <FogController scrollProgress={scrollProgress} ambientRef={ambientRef} />
 
@@ -183,9 +163,8 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
 export default function TundraScene({ scrollProgress, targetProgress }) {
   const [isLowEnd, setIsLowEnd] = useState(false)
   const onDetect = useCallback((low) => setIsLowEnd(low), [])
-  
+
   const crystalYRef = useRef({ value: null })
-  const crackScaleRef = useRef({ value: null })
   const fallPhaseRef = useRef(null)
 
   return (
@@ -195,14 +174,20 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
         alpha: false,
         powerPreference: 'high-performance',
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 0.9,
+        toneMappingExposure: 0.72,
       }}
       dpr={[1, 2]}
       camera={{ fov: 45, position: [0, 2.5, 90], near: 0.1, far: 500 }}
       style={{ position: 'fixed', inset: 0 }}
     >
       <GpuQualityDetector onDetect={onDetect} />
-      <SceneContents scrollProgress={scrollProgress} targetProgress={targetProgress} isLowEnd={isLowEnd} crystalYRef={crystalYRef} crackScaleRef={crackScaleRef} fallPhaseRef={fallPhaseRef} />
+      <SceneContents
+        scrollProgress={scrollProgress}
+        targetProgress={targetProgress}
+        isLowEnd={isLowEnd}
+        crystalYRef={crystalYRef}
+        fallPhaseRef={fallPhaseRef}
+      />
     </Canvas>
   )
 }
