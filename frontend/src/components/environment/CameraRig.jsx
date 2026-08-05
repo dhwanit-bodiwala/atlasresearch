@@ -2,10 +2,14 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useRef } from 'react'
 
+// START_POS: raise so lake is visible from entry
 const START_POS = new THREE.Vector3(0, 4, 90)
+// START_TARGET stays:
 const START_TARGET = new THREE.Vector3(0, 0, 0)
-const END_POS = new THREE.Vector3(0, 3, 18)
-const END_TARGET = new THREE.Vector3(0, 5, 0)
+// END_POS: push back and raise so full crystal fits in frame
+const END_POS = new THREE.Vector3(0, 5, 28)
+// END_TARGET: raise to keep crystal centered
+const END_TARGET = new THREE.Vector3(0, 8, 0)
 
 export default function CameraRig({ scrollProgress, targetProgress, crystalYRef = null, fallPhaseRef = null }) {
   const { camera } = useThree()

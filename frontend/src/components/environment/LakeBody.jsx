@@ -6,8 +6,9 @@ import { useMemo } from 'react'
 
 extend({ Water })
 
-export default function LakeBody() {
+export default function LakeBody({ scrollProgress }) {
   const waterRef = useRef()
+  const shoreRef = useRef()
 
   const shoreShape = useMemo(() => {
     const outer = new THREE.Shape()
@@ -18,7 +19,7 @@ export default function LakeBody() {
     outer.bezierCurveTo(-51, 26, -46, 1, -49, -17)
     outer.bezierCurveTo(-52, -33, -30, -38, -14, -40)
     outer.bezierCurveTo(-6, -42, -10, -32, 0, -36)
-    
+
     const hole = new THREE.Path()
     hole.moveTo(0, -33)
     hole.bezierCurveTo(18, -39, 42, -24, 43, -6)
@@ -63,6 +64,15 @@ export default function LakeBody() {
     if (waterRef.current) {
       waterRef.current.material.uniforms['time'].value += delta * 0.4
     }
+    const t = scrollProgress?.current || 0
+    // Lake invisible at start, fully visible by scroll 0.85
+    const opacity = Math.min(1, t / 0.85)
+    if (waterRef.current?.material?.uniforms?.alpha) {
+      waterRef.current.material.uniforms.alpha.value = opacity
+    }
+    if (shoreRef.current) {
+      shoreRef.current.material.opacity = opacity
+    }
   })
 
   return (
@@ -73,13 +83,15 @@ export default function LakeBody() {
         position={[0, -0.4, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       />
-      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh ref={shoreRef} position={[0, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shoreShape]} />
         <meshStandardMaterial
-          color="#a8b8c4"
+          color="#c2d0dc"
           roughness={0.95}
           metalness={0}
-          depthWrite={true}
+          depthWrite={false}
+          transparent={true}
+          opacity={0}
         />
       </mesh>
     </group>

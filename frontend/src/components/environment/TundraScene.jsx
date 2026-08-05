@@ -16,6 +16,9 @@ import CrystalParticles from '../crystal/CrystalParticles'
 import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import LakeBody from './LakeBody'
+import LakeFlora from './LakeFlora'
+import LakeRocks from './LakeRocks'
+import LakePebbles from './LakePebbles'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
@@ -43,7 +46,7 @@ const BG_COLOR_END = new THREE.Color('#8fa0ae')
 const _bgColor = new THREE.Color()
 
 function FogController({ scrollProgress, ambientRef }) {
-  const { scene } = useThree()
+  const { scene, gl } = useThree()
   const crystalState = useAtlasStore((s) => s.crystalState)
 
   useFrame(() => {
@@ -71,6 +74,11 @@ function FogController({ scrollProgress, ambientRef }) {
         scene.fog.color.lerp(new THREE.Color('#060a12'), 0.04)
       }
     }
+
+    // Dynamic exposure — dip at mid-scroll to kill sun glare
+    // Peak glare is around t=0.4–0.6, pull exposure down there
+    const glare = Math.sin(t * Math.PI) // 0→1→0 bell curve peaking at t=0.5
+    gl.toneMappingExposure = THREE.MathUtils.lerp(0.72, 0.52, glare * 0.7)
   })
 
   return null
@@ -113,7 +121,7 @@ function FallSequencer({ crystalYRef, fallPhaseRef }) {
   return null
 }
 
-function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef }) {
+function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef, windStrengthRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const ambientRef = useRef()
 
@@ -126,8 +134,11 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       {/* Pass scrollProgress to TundraGround so it can fade out */}
       <TundraGround scrollProgress={scrollProgress} />
       <HorizonRidge />
-      <LakeBody />
-      <CrystalMesh crystalState={crystalState} position={[0, 5.5, 0]} scale={2.5} crystalYRef={crystalYRef} />
+      <LakeBody scrollProgress={scrollProgress} />
+      <LakeFlora scrollProgress={scrollProgress} windStrengthRef={windStrengthRef} />
+      <LakeRocks scrollProgress={scrollProgress} />
+      <LakePebbles scrollProgress={scrollProgress} />
+      <CrystalMesh crystalState={crystalState} position={[0, 9, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
 
       <ambientLight ref={ambientRef} color="#c8d8e8" intensity={1.4} />
@@ -166,6 +177,7 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
 
   const crystalYRef = useRef({ value: null })
   const fallPhaseRef = useRef(null)
+  const windStrengthRef = useRef({ value: 0.06 })
 
   return (
     <Canvas
@@ -187,6 +199,7 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
         isLowEnd={isLowEnd}
         crystalYRef={crystalYRef}
         fallPhaseRef={fallPhaseRef}
+        windStrengthRef={windStrengthRef}
       />
     </Canvas>
   )
