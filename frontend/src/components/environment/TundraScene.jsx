@@ -16,9 +16,7 @@ import CrystalParticles from '../crystal/CrystalParticles'
 import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import LakeBody from './LakeBody'
-import LakeFlora from './LakeFlora'
 import LakeRocks from './LakeRocks'
-import LakePebbles from './LakePebbles'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
@@ -121,7 +119,7 @@ function FallSequencer({ crystalYRef, fallPhaseRef }) {
   return null
 }
 
-function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef, windStrengthRef }) {
+function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const ambientRef = useRef()
 
@@ -135,9 +133,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       <TundraGround scrollProgress={scrollProgress} />
       <HorizonRidge />
       <LakeBody scrollProgress={scrollProgress} />
-      <LakeFlora scrollProgress={scrollProgress} windStrengthRef={windStrengthRef} />
       <LakeRocks scrollProgress={scrollProgress} />
-      <LakePebbles scrollProgress={scrollProgress} />
       <CrystalMesh crystalState={crystalState} position={[0, 9, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
 
@@ -177,7 +173,6 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
 
   const crystalYRef = useRef({ value: null })
   const fallPhaseRef = useRef(null)
-  const windStrengthRef = useRef({ value: 0.06 })
 
   return (
     <Canvas
@@ -199,7 +194,6 @@ export default function TundraScene({ scrollProgress, targetProgress }) {
         isLowEnd={isLowEnd}
         crystalYRef={crystalYRef}
         fallPhaseRef={fallPhaseRef}
-        windStrengthRef={windStrengthRef}
       />
     </Canvas>
   )
