@@ -53,22 +53,22 @@ function DepthShaft() {
   const gatherUniforms = useRef({
     uTime: { value: 0 },
     uIntensity: { value: 0.4 },
-    uColorA: { value: new THREE.Color('#0a1628') },
-    uColorB: { value: new THREE.Color('#1a3a5c') },
+    uColorA: { value: new THREE.Color('#031a1a') },
+    uColorB: { value: new THREE.Color('#0a4a4a') },
     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   })
   const synthUniforms = useRef({
     uTime: { value: 0 },
     uFrostAmount: { value: 0.3 },
-    uColorA: { value: new THREE.Color('#0d1f2d') },
-    uColorB: { value: new THREE.Color('#1a2f40') },
+    uColorA: { value: new THREE.Color('#0a1a2a') },
+    uColorB: { value: new THREE.Color('#1a4a6a') },
     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   })
   const criticUniforms = useRef({
     uTime: { value: 0 },
     uIntensity: { value: 0.5 },
-    uColorA: { value: new THREE.Color('#1a0a28') },
-    uColorB: { value: new THREE.Color('#3a1a5c') },
+    uColorA: { value: new THREE.Color('#0e0420') },
+    uColorB: { value: new THREE.Color('#2a0a5a') },
     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   })
 
