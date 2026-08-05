@@ -16,7 +16,7 @@ import CrystalParticles from '../crystal/CrystalParticles'
 import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import LakeBody from './LakeBody'
-import LakeRocks from './LakeRocks'
+import LakeIceShards from './LakeIceShards'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
 
@@ -133,7 +133,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       <TundraGround scrollProgress={scrollProgress} />
       <HorizonRidge />
       <LakeBody scrollProgress={scrollProgress} />
-      <LakeRocks scrollProgress={scrollProgress} />
+      <LakeIceShards scrollProgress={scrollProgress} />
       <CrystalMesh crystalState={crystalState} position={[0, 9, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
 
