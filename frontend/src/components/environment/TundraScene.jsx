@@ -16,6 +16,7 @@ import CrystalParticles from '../crystal/CrystalParticles'
 import TundraSky from './TundraSky'
 import TundraGround from './TundraGround'
 import LakeBody from './LakeBody'
+import LakeRipple from './LakeRipple'
 import LakeIceShards from './LakeIceShards'
 import HorizonRidge from './HorizonRidge'
 import CameraRig from './CameraRig'
@@ -92,27 +93,44 @@ function FallSequencer({ crystalYRef, fallPhaseRef }) {
     if (hasRun.current) return
     hasRun.current = true
 
-    crystalYRef.current.value = 3.5
+    crystalYRef.current.value = 9
 
     const tl = gsap.timeline()
 
+    // t=1.6 → camera starts following, crystal plunges Y:9 → Y:-0.4 in 1.4s
     tl.call(() => {
       fallPhaseRef.current = 'follow'
-    }, null, 0.6)
+    }, null, 1.6)
 
     tl.to(crystalYRef.current, {
-      value: -55,
-      duration: 4.0,
+      value: -0.4,
+      duration: 1.4,
       ease: 'power2.in',
     }, 1.6)
 
+    // t=3.0 → crystal hits water, first ripple triggers
     tl.call(() => {
-      fallPhaseRef.current = 'parallel'
-    }, null, 2.9)
+      fallPhaseRef.current = 'water_entry'
+    }, null, 3.0)
 
     tl.call(() => {
+      fallPhaseRef.current = 'ripple_1'
+    }, null, 3.05)
+
+    // t=3.2 → parallel camera phase
+    tl.call(() => {
+      fallPhaseRef.current = 'parallel'
+    }, null, 3.2)
+
+    // t=3.85 → second ripple as water closes
+    tl.call(() => {
+      fallPhaseRef.current = 'ripple_2'
+    }, null, 3.85)
+
+    // t=4.8 → transition to descent scene
+    tl.call(() => {
       setScene('descent')
-    }, null, 3.8)
+    }, null, 4.8)
 
   }, [crystalState, setScene])
 
@@ -133,6 +151,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       <TundraGround scrollProgress={scrollProgress} />
       <HorizonRidge />
       <LakeBody scrollProgress={scrollProgress} />
+      <LakeRipple scrollProgress={scrollProgress} fallPhaseRef={fallPhaseRef} />
       <LakeIceShards scrollProgress={scrollProgress} />
       <CrystalMesh crystalState={crystalState} position={[0, 9, 0]} scale={2.5} crystalYRef={crystalYRef} />
       <CrystalParticles />
