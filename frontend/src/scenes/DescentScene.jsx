@@ -6,6 +6,7 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import fluidFrag from '../components/crystal/shaders/fluid.frag.glsl'
 import frostFrag from '../components/crystal/shaders/frost.frag.glsl'
+import CrystalMesh from '../components/crystal/CrystalMesh'
 
 const SHAFT_VERTEX = `
   varying vec2 vUv;
@@ -29,7 +30,7 @@ function DescentCamera() {
   }, [pipelineStage])
 
   useEffect(() => {
-    camera.position.set(0, 8, 0)
+    camera.position.set(0, 4, 12)
     camera.lookAt(0, 0, 0)
   }, [])
 
@@ -177,12 +178,13 @@ export default function DescentScene() {
         style={{ position: 'fixed', inset: 0 }}
       >
         <color attach="background" args={['#060a12']} />
-        <fog attach="fog" args={['#060a12', 8, 40]} />
+        <fog attach="fog" args={['#060a12', 25, 80]} />
         <ambientLight color="#1a2a3a" intensity={0.8} />
         <pointLight color="#3a6a9a" intensity={2.0} position={[0, 0, 0]} />
 
         <DescentCamera />
         <DepthShaft />
+        <CrystalMesh crystalState="FORMING" position={[0, 0, 0]} scale={2.5} />
 
         <EffectComposer>
           <Bloom

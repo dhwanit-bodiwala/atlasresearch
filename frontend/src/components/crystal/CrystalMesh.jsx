@@ -60,7 +60,7 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
   return (
     <group ref={groupRef} position={position} scale={scale}>
       {meshes.shell.map((mesh, i) => (
-        <mesh key={`shell-${i}`} geometry={mesh.geometry} matrix={mesh.matrix} matrixAutoUpdate={false}>
+        <mesh key={`shell-${i}`} geometry={mesh.geometry}>
           <MeshTransmissionMaterial
             transmission={0.15}
             thickness={1.8}
@@ -79,7 +79,7 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
         </mesh>
       ))}
       {meshes.core.map((mesh, i) => (
-        <mesh key={`core-${i}`} geometry={mesh.geometry} matrix={mesh.matrix} matrixAutoUpdate={false}>
+        <mesh key={`core-${i}`} geometry={mesh.geometry}>
           <meshStandardMaterial
             color="#e8edf2"
             emissive="#c5d3e0"
