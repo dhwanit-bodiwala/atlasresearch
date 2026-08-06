@@ -1,33 +1,58 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import useAtlasStore from '../store/atlasStore'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
-import fluidFrag from '../components/crystal/shaders/fluid.frag.glsl'
-import frostFrag from '../components/crystal/shaders/frost.frag.glsl'
 import CrystalMesh from '../components/crystal/CrystalMesh'
+import AmbientParticles from '../components/environment/AmbientParticles'
+import GodRays from '../components/environment/GodRays'
+import CrystalHUD from '../components/ui/CrystalHUD'
 
-const SHAFT_VERTEX = `
-  varying vec2 vUv;
-  varying vec3 vPosition;
-  void main() {
-    vUv = uv;
-    vPosition = position;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-
-function DescentCamera() {
-  const { camera } = useThree()
-  const targetY = useRef(8)
+function ZoneAtmosphere() {
   const pipelineStage = useAtlasStore((s) => s.pipelineStage)
+  const ambientRef = useRef()
+  const targetBg = useRef(new THREE.Color('#8ab8cc'))
+  const targetFog = useRef(new THREE.Color('#9ec4d4'))
 
   useEffect(() => {
-    if (pipelineStage === 'gatherer')    targetY.current = -2
-    if (pipelineStage === 'synthesizer') targetY.current = -14
-    if (pipelineStage === 'critic')      targetY.current = -26
+    if (pipelineStage === 'gatherer') {
+      targetBg.current.set('#8ab8cc')
+      targetFog.current.set('#9ec4d4')
+    }
+    if (pipelineStage === 'synthesizer') {
+      targetBg.current.set('#0d2035')
+      targetFog.current.set('#1a3a5a')
+    }
+    if (pipelineStage === 'critic') {
+      targetBg.current.set('#030508')
+      targetFog.current.set('#06080f')
+    }
   }, [pipelineStage])
+
+  useFrame(({ scene }) => {
+    if (scene.fog) {
+      scene.fog.color.lerp(targetFog.current, 0.008)
+    }
+    if (scene.background) {
+      scene.background.lerp(targetBg.current, 0.008)
+    }
+  })
+
+  return <ambientLight ref={ambientRef} color="#8ab8cc" intensity={1.8} />
+}
+
+function DescentInner({ crystalYRef }) {
+  useFrame((_, delta) => {
+    crystalYRef.current.value -= delta * 3.5
+    if (crystalYRef.current.value < -34) crystalYRef.current.value = 4
+  })
+
+  return null
+}
+
+function DescentCamera({ crystalYRef }) {
+  const { camera } = useThree()
 
   useEffect(() => {
     camera.position.set(0, 4, 12)
@@ -35,108 +60,13 @@ function DescentCamera() {
   }, [])
 
   useFrame(() => {
-    camera.position.y = THREE.MathUtils.lerp(
-      camera.position.y,
-      targetY.current,
-      0.008
-    )
-    camera.lookAt(0, camera.position.y - 2, 0)
+    const targetY = crystalYRef.current.value + 7
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.1)
+    camera.position.z = 12
+    camera.lookAt(0, crystalYRef.current.value, 0)
   })
 
   return null
-}
-
-function DepthShaft() {
-  const pipelineStage = useAtlasStore((s) => s.pipelineStage)
-  const timeRef = useRef(0)
-
-  const gatherUniforms = useRef({
-    uTime: { value: 0 },
-    uIntensity: { value: 0.4 },
-    uColorA: { value: new THREE.Color('#031a1a') },
-    uColorB: { value: new THREE.Color('#0a4a4a') },
-    uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-  })
-  const synthUniforms = useRef({
-    uTime: { value: 0 },
-    uFrostAmount: { value: 0.3 },
-    uColorA: { value: new THREE.Color('#0a1a2a') },
-    uColorB: { value: new THREE.Color('#0a6a8a') },
-    uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-  })
-  const criticUniforms = useRef({
-    uTime: { value: 0 },
-    uIntensity: { value: 0.5 },
-    uColorA: { value: new THREE.Color('#0e0420') },
-    uColorB: { value: new THREE.Color('#3a0a8a') },
-    uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-  })
-
-  useEffect(() => {
-    const handleResize = () => {
-      const resolution = new THREE.Vector2(window.innerWidth, window.innerHeight)
-      gatherUniforms.current.uResolution.value = resolution
-      synthUniforms.current.uResolution.value = resolution
-      criticUniforms.current.uResolution.value = resolution
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  useFrame((_, delta) => {
-    timeRef.current += delta
-    gatherUniforms.current.uTime.value = timeRef.current
-    synthUniforms.current.uTime.value = timeRef.current
-    criticUniforms.current.uTime.value = timeRef.current
-
-    const targetGather = pipelineStage === 'gatherer' ? 1.2 : 0.4
-    const targetCritic = pipelineStage === 'critic' ? 1.4 : 0.5
-    gatherUniforms.current.uIntensity.value = THREE.MathUtils.lerp(
-      gatherUniforms.current.uIntensity.value, targetGather, 0.02
-    )
-    criticUniforms.current.uIntensity.value = THREE.MathUtils.lerp(
-      criticUniforms.current.uIntensity.value, targetCritic, 0.02
-    )
-  })
-
-  const shaftGeom = new THREE.CylinderGeometry(3.2, 2.2, 12, 48, 8, true)
-
-  return (
-    <group>
-      <mesh geometry={shaftGeom} position={[0, -4, 0]}>
-        <shaderMaterial
-          vertexShader={SHAFT_VERTEX}
-          fragmentShader={fluidFrag}
-          uniforms={gatherUniforms.current}
-          side={THREE.BackSide}
-          transparent
-          depthWrite={false}
-        />
-      </mesh>
-
-      <mesh geometry={shaftGeom} position={[0, -16, 0]}>
-        <shaderMaterial
-          vertexShader={SHAFT_VERTEX}
-          fragmentShader={frostFrag}
-          uniforms={synthUniforms.current}
-          side={THREE.BackSide}
-          transparent
-          depthWrite={false}
-        />
-      </mesh>
-
-      <mesh geometry={shaftGeom} position={[0, -28, 0]}>
-        <shaderMaterial
-          vertexShader={SHAFT_VERTEX}
-          fragmentShader={fluidFrag}
-          uniforms={criticUniforms.current}
-          side={THREE.BackSide}
-          transparent
-          depthWrite={false}
-        />
-      </mesh>
-    </group>
-  )
 }
 
 function PipelineLabel() {
@@ -168,6 +98,8 @@ function PipelineLabel() {
 }
 
 export default function DescentScene() {
+  const crystalYRef = useRef({ value: 4 })
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh',
                   background: '#060a12' }}>
@@ -177,27 +109,30 @@ export default function DescentScene() {
         camera={{ fov: 60, position: [0, 8, 4], near: 0.1, far: 200 }}
         style={{ position: 'fixed', inset: 0 }}
       >
-        <color attach="background" args={['#060a12']} />
-        <fog attach="fog" args={['#060a12', 25, 80]} />
-        <ambientLight color="#1a2a3a" intensity={0.8} />
-        <pointLight color="#3a6a9a" intensity={2.0} position={[0, 0, 0]} />
+        <color attach="background" args={['#8ab8cc']} />
+        <fog attach="fog" args={['#9ec4d4', 20, 70]} />
+        <pointLight color="#ffffff" intensity={3.0} position={[0, 10, 5]} />
 
-        <DescentCamera />
-        <DepthShaft />
-        <CrystalMesh crystalState="FORMING" position={[0, 0, 0]} scale={2.5} />
+        <ZoneAtmosphere />
+        <DescentInner crystalYRef={crystalYRef} />
+        <DescentCamera crystalYRef={crystalYRef} />
+        <CrystalMesh crystalState="FORMING" position={[0, 0, 0]} scale={2.5} crystalYRef={crystalYRef} />
+        <AmbientParticles crystalYRef={crystalYRef} />
+        <GodRays crystalYRef={crystalYRef} />
 
         <EffectComposer>
           <Bloom
-            intensity={0.8}
-            luminanceThreshold={0.3}
+            intensity={1.2}
+            luminanceThreshold={0.2}
             luminanceSmoothing={0.9}
             mipmapBlur
           />
-          <Vignette offset={0.2} darkness={0.8} blendFunction={BlendFunction.NORMAL} />
+          <Vignette offset={0.3} darkness={0.6} blendFunction={BlendFunction.NORMAL} />
         </EffectComposer>
       </Canvas>
 
       <PipelineLabel />
+      <CrystalHUD />
     </div>
   )
 }
