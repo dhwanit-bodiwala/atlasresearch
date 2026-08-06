@@ -8,7 +8,7 @@ export default function App() {
   return (
     <>
       {currentScene === 'entry' && <EntryScene />}
-      {currentScene === 'descent' && <DescentScene />}
+      {(currentScene === 'descent' || currentScene === 'emergence') && <DescentScene />}
     </>
   )
 }

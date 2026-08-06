@@ -3,6 +3,7 @@ import TundraScene from '../components/environment/TundraScene'
 import ProjectTagPill from '../components/ui/ProjectTagPill'
 import useAtlasStore from '../store/atlasStore'
 import { useScrollCamera } from '../hooks/useScrollCamera'
+import { useWebSocket } from '../hooks/useWebSocket'
 
 export default function EntryScene() {
   const [hasClicked, setHasClicked] = useState(false)
@@ -15,6 +16,10 @@ export default function EntryScene() {
   const setQuestion = useAtlasStore((s) => s.setQuestion)
   const setCrystalState = useAtlasStore((s) => s.setCrystalState)
   const setScene = useAtlasStore((s) => s.setScene)
+  const { connect } = useWebSocket()
+  const question = useAtlasStore((s) => s.question)
+  const projectTag = useAtlasStore((s) => s.projectTag)
+  const deepResearch = useAtlasStore((s) => s.deepResearch)
   const { scrollProgress, targetProgress } = useScrollCamera(
     useCallback(() => setAtThreshold(true), []),
     useCallback(() => {
@@ -51,6 +56,7 @@ export default function EntryScene() {
     setQuestion(inputValue.trim())
     setInputMode(false)
     setCrystalState('DESCENDING')
+    connect(inputValue.trim(), projectTag, deepResearch)
   }
 
   return (

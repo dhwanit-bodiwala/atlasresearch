@@ -23,22 +23,36 @@ export function useWebSocket() {
       let msg
       try { msg = JSON.parse(event.data) } catch { return }
 
+
       const s = useAtlasStore.getState()
       const { type, data } = msg
 
       switch (type) {
         // ── Pipeline stage changes ──────────────────────
-        case 'gatherer_start':
-          s.setPipelineStage('gatherer')
-          s.setCrystalState('FORMING')
-          break
+        case 'agent_started':
+        case 'pipeline_started':
+          break  // handled by specific agent events below
 
-        case 'synthesizer_start':
+        case 'synthesizer_started':
           s.setPipelineStage('synthesizer')
           break
 
-        case 'critic_start':
+        case 'critic_started':
           s.setPipelineStage('critic')
+          break
+
+        case 'gatherer_completed':
+          // gatherer done, synthesizer next
+          break
+
+        case 'source_started':
+        case 'source_fetch_completed':
+        case 'source_generation_completed':
+          // gatherer is running — set stage if not already set
+          if (!s.pipelineStage) {
+            s.setPipelineStage('gatherer')
+            s.setCrystalState('FORMING')
+          }
           break
 
         // ── Data shards ─────────────────────────────────

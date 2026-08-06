@@ -1,7 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useWebSocket } from '../hooks/useWebSocket'
 import useAtlasStore from '../store/atlasStore'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
@@ -61,14 +60,14 @@ function DepthShaft() {
     uTime: { value: 0 },
     uFrostAmount: { value: 0.3 },
     uColorA: { value: new THREE.Color('#0a1a2a') },
-    uColorB: { value: new THREE.Color('#1a4a6a') },
+    uColorB: { value: new THREE.Color('#0a6a8a') },
     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   })
   const criticUniforms = useRef({
     uTime: { value: 0 },
     uIntensity: { value: 0.5 },
     uColorA: { value: new THREE.Color('#0e0420') },
-    uColorB: { value: new THREE.Color('#2a0a5a') },
+    uColorB: { value: new THREE.Color('#3a0a8a') },
     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   })
 
@@ -167,19 +166,6 @@ function PipelineLabel() {
   )
 }
 
-function DescentConnector() {
-  const { connect } = useWebSocket()
-  const question = useAtlasStore((s) => s.question)
-  const projectTag = useAtlasStore((s) => s.projectTag)
-  const deepResearch = useAtlasStore((s) => s.deepResearch)
-
-  useEffect(() => {
-    connect(question, projectTag, deepResearch)
-  }, [])
-
-  return null
-}
-
 export default function DescentScene() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh',
@@ -195,7 +181,6 @@ export default function DescentScene() {
         <ambientLight color="#1a2a3a" intensity={0.8} />
         <pointLight color="#3a6a9a" intensity={2.0} position={[0, 0, 0]} />
 
-        <DescentConnector />
         <DescentCamera />
         <DepthShaft />
 
