@@ -2,33 +2,59 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const PARTICLE_COUNT = 600
+const PARTICLE_COUNT = 180
+
+function createCircleTexture() {
+  const size = 64
+  const canvas = typeof OffscreenCanvas !== 'undefined'
+    ? new OffscreenCanvas(size, size)
+    : document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+
+  const ctx = canvas.getContext('2d')
+  const center = size / 2
+  const gradient = ctx.createRadialGradient(center, center, 0, center, center, center)
+  gradient.addColorStop(0, 'rgba(255,255,255,1)')
+  gradient.addColorStop(1, 'rgba(255,255,255,0)')
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, size, size)
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  return texture
+}
 
 export default function AmbientParticles({ crystalYRef }) {
   const pointsRef = useRef()
 
-  const { positions, offsets, drifts } = useMemo(() => {
+  const alphaMap = useMemo(() => createCircleTexture(), [])
+
+  const { positions, offsets, velocities } = useMemo(() => {
     const positions = new Float32Array(PARTICLE_COUNT * 3)
     const offsets = new Float32Array(PARTICLE_COUNT)
-    const drifts = new Float32Array(PARTICLE_COUNT * 3)
+    const velocities = new Float32Array(PARTICLE_COUNT * 3)
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3
-      // Random positions: x [-12,12], y [-5,5] relative offset, z [-12,12]
-      positions[i3]     = (Math.random() - 0.5) * 24
-      positions[i3 + 1] = (Math.random() - 0.5) * 10
-      positions[i3 + 2] = (Math.random() - 0.5) * 24
+      const col = i % 12
+      const row = Math.floor(i / 12)
+      // Loose grid: base position from grid, then jitter
+      positions[i3]     = (col / 12 - 0.5) * 28 + (Math.random() - 0.5) * 2.2
+      positions[i3 + 1] = (Math.random() - 0.5) * 16
+      positions[i3 + 2] = (row / 15 - 0.5) * 28 + (Math.random() - 0.5) * 2.2 - 8
 
       // Store the local y offset for each particle
       offsets[i] = positions[i3 + 1]
 
-      // Drift velocities: x ±0.003, y +0.001 to +0.004, z ±0.003
-      drifts[i3]     = (Math.random() - 0.5) * 0.006
-      drifts[i3 + 1] = 0.001 + Math.random() * 0.003
-      drifts[i3 + 2] = (Math.random() - 0.5) * 0.006
+      // Velocities: vx and vz ±0.002, vy 0.003–0.008
+      velocities[i3]     = (Math.random() - 0.5) * 0.004
+      velocities[i3 + 1] = 0.003 + Math.random() * 0.005
+      velocities[i3 + 2] = (Math.random() - 0.5) * 0.004
     }
 
-    return { positions, offsets, drifts }
+    return { positions, offsets, velocities }
   }, [])
 
   const geometry = useMemo(() => {
@@ -46,23 +72,19 @@ export default function AmbientParticles({ crystalYRef }) {
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3
 
-      // Apply drift to x and z
-      arr[i3]     += drifts[i3]
-      arr[i3 + 2] += drifts[i3 + 2]
+      // Apply horizontal drift
+      arr[i3]     += velocities[i3]
+      arr[i3 + 2] += velocities[i3 + 2]
 
       // Drift the local y offset upward
-      offsets[i] += drifts[i3 + 1]
+      offsets[i] += velocities[i3 + 1]
 
-      // Wrap x if beyond ±12
-      if (arr[i3] > 12) arr[i3] = -12
-      if (arr[i3] < -12) arr[i3] = 12
+      // Flip horizontal velocity if x or z exceeds ±10
+      if (arr[i3] > 10 || arr[i3] < -10) velocities[i3] *= -1
+      if (arr[i3 + 2] > 10 || arr[i3 + 2] < -10) velocities[i3 + 2] *= -1
 
-      // Wrap z if beyond ±12
-      if (arr[i3 + 2] > 12) arr[i3 + 2] = -12
-      if (arr[i3 + 2] < -12) arr[i3 + 2] = 12
-
-      // Wrap local y offset if it drifts beyond range
-      if (offsets[i] > 5) offsets[i] = -5
+      // Loop local y offset
+      if (offsets[i] > 6) offsets[i] = -6
 
       // Set y = crystal position + local offset
       arr[i3 + 1] = crystalY + offsets[i]
@@ -74,13 +96,15 @@ export default function AmbientParticles({ crystalYRef }) {
   return (
     <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial
-        color="#c8e4f0"
-        size={2.0}
-        sizeAttenuation
+        size={0.12}
+        color="#d8eaf0"
         transparent
-        opacity={0.4}
-        blending={THREE.AdditiveBlending}
+        opacity={0.18}
+        alphaMap={alphaMap}
+        alphaTest={0.01}
         depthWrite={false}
+        blending={THREE.AdditiveBlending}
+        sizeAttenuation
       />
     </points>
   )

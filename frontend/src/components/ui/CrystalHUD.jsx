@@ -15,25 +15,28 @@ function toRunes(str) {
 }
 
 const GIBBERISH_LINES = [
-  'ᛞᛖᚾᛊᛁᛏᚨᛊ // ᚾᛟᚱᛗ',
-  'ᚠᛚᚢᛪ_ᚢᚾᛊᛏᚨᛒᛚᛖ',
-  'ᚲᚱᛃᛊᛏᚨᛚ_ᛊᛃᚾᚲ',
+  'FLUX_UNSTABLE',
+  'DENSITY // NORM',
+  'CRYSTAL_SYNC',
+  'FORMING',
 ]
 
 const baseText = {
   fontFamily: "'JetBrains Mono', monospace",
-  fontSize: '11px',
-  color: 'rgba(255,255,255,0.55)',
-  letterSpacing: '2px',
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.88)',
+  letterSpacing: '3px',
   lineHeight: '1.8',
+  fontWeight: 500,
+  textTransform: 'uppercase',
   pointerEvents: 'none',
 }
 
 const connectorBase = {
   position: 'absolute',
-  width: '60px',
+  width: '80px',
   height: '1px',
-  background: 'rgba(255,255,255,0.2)',
+  background: 'rgba(255,255,255,0.45)',
   pointerEvents: 'none',
 }
 
@@ -97,7 +100,6 @@ export default function CrystalHUD() {
 
   if (!pipelineStage) return null
 
-  const runicStage = toRunes(pipelineStage)
   const depthFormatted = `▼ 00.${String(depthCount).padStart(2, '0')}`
 
   return (
@@ -113,8 +115,8 @@ export default function CrystalHUD() {
     >
       {/* TOP LEFT — Runic stage status */}
       <div style={{ position: 'fixed', top: '38%', left: '28%', ...baseText }}>
-        <div>ᚷᚨᚦᛖᚱᛖᚱ_ᛊᛏᚨᛏᚢᛊ</div>
-        <div>{runicStage}</div>
+        <div>AGENT_STATUS</div>
+        <div>{pipelineStage?.toUpperCase()}</div>
         {/* Connector line → right toward center */}
         <div
           style={{

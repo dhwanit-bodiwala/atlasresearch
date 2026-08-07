@@ -108,7 +108,11 @@ export function useWebSocket() {
 
     ws.onerror = (e) => {
       console.error('WebSocket error:', e)
-      useAtlasStore.getState().setPipelineError('Connection failed')
+      const s = useAtlasStore.getState()
+      // Only set error if pipeline hasn't already completed successfully
+      if (s.crystalState !== 'EMERGED') {
+        s.setPipelineError('Connection failed')
+      }
     }
 
     ws.onclose = () => {
