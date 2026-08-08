@@ -84,7 +84,7 @@ def run_orchestrator(question: str, project_tag: str, deep_research: bool = Fals
         "question": question,
         "project_tag": project_tag,
         "processed_info": synthesis_text,
-        "flagged_items": critic_ids,
+        "flagged_items": [f["content"] for f in critic_ids] if critic_ids else [],
     }
 
     total_duration = time.time() - total_start

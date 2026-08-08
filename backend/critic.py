@@ -110,7 +110,7 @@ def run_critic(question: str, project_tag: str, emit=None):
         write_duration = time.time() - write_start
         print(f"[TIMING] critic write_memory: {write_duration:.2f}s")
         emit_event(emit, "memory_written", id=id, type="FLAGGED", source="critic", project_tag=project_tag, duration=write_duration)
-        ids.append(id)
+        ids.append({"id": id, "content": flag})
 
     total_duration = time.time() - total_start
     print(f"[TIMING] critic TOTAL: {total_duration:.2f}s")

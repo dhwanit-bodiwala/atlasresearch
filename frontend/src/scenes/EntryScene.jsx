@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import TundraScene from '../components/environment/TundraScene'
 import ProjectTagPill from '../components/ui/ProjectTagPill'
+import EmergenceHUD from '../components/ui/EmergenceHUD'
 import useAtlasStore from '../store/atlasStore'
 import { useScrollCamera } from '../hooks/useScrollCamera'
 import { useWebSocket } from '../hooks/useWebSocket'
@@ -13,6 +14,8 @@ export default function EntryScene() {
   const [atThreshold, setAtThreshold] = useState(false)
   const inputRef = useRef()
   const scrollDisabledRef = useRef(false)
+  const crystalState = useAtlasStore((s) => s.crystalState)
+  const currentScene = useAtlasStore((s) => s.currentScene)
   const setQuestion = useAtlasStore((s) => s.setQuestion)
   const setCrystalState = useAtlasStore((s) => s.setCrystalState)
   const setScene = useAtlasStore((s) => s.setScene)
@@ -35,6 +38,15 @@ export default function EntryScene() {
       setTimeout(() => inputRef.current?.focus(), 120)
     }
   }, [inputMode])
+
+  useEffect(() => {
+    if (crystalState === 'EMERGED' && currentScene === 'entry') {
+      scrollDisabledRef.current = true
+    } else {
+      // Only re-enable if user hasn't clicked crystal (inputMode handles its own lock)
+      if (!inputMode) scrollDisabledRef.current = false
+    }
+  }, [crystalState, currentScene, inputMode])
 
   const handleCrystalClick = () => {
     if (hasClickedRef.current) return
@@ -64,6 +76,8 @@ export default function EntryScene() {
       <TundraScene scrollProgress={scrollProgress} targetProgress={targetProgress} />
       
       <ProjectTagPill />
+      
+      <EmergenceHUD />
       
       {atThreshold && !inputMode && (
         <>

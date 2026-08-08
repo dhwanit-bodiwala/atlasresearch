@@ -14,13 +14,6 @@ function toRunes(str) {
     .join('')
 }
 
-const GIBBERISH_LINES = [
-  'FLUX_UNSTABLE',
-  'DENSITY // NORM',
-  'CRYSTAL_SYNC',
-  'FORMING',
-]
-
 const baseText = {
   fontFamily: "'JetBrains Mono', monospace",
   fontSize: '13px',
@@ -43,16 +36,15 @@ const connectorBase = {
 export default function CrystalHUD() {
   const pipelineStage = useAtlasStore((s) => s.pipelineStage)
   const pipelineError = useAtlasStore((s) => s.pipelineError)
+  const activeSource = useAtlasStore((s) => s.activeSource)
+  const sourceCount = useAtlasStore((s) => s.sourceCount)
+  const findingCount = useAtlasStore((s) => s.findingCount)
+  const flagCount = useAtlasStore((s) => s.flagCount)
 
   const [depthCount, setDepthCount] = useState(0)
-  const [gibberishLine, setGibberishLine] = useState(GIBBERISH_LINES[0])
-  const [sourceCount, setSourceCount] = useState(0)
   const [visible, setVisible] = useState(false)
 
   const depthInterval = useRef(null)
-  const sourceInterval = useRef(null)
-  const gibberishInterval = useRef(null)
-  const sourceStart = useRef(null)
 
   // Fade in when pipelineStage first appears
   useEffect(() => {
@@ -71,31 +63,6 @@ export default function CrystalHUD() {
       setDepthCount(0)
     }
     return () => clearInterval(depthInterval.current)
-  }, [pipelineStage])
-
-  // Gibberish flicker every 2 seconds
-  useEffect(() => {
-    gibberishInterval.current = setInterval(() => {
-      setGibberishLine(
-        GIBBERISH_LINES[Math.floor(Math.random() * GIBBERISH_LINES.length)]
-      )
-    }, 2000)
-    return () => clearInterval(gibberishInterval.current)
-  }, [])
-
-  // Source counter — animate 0→3 over 35 seconds during gatherer
-  useEffect(() => {
-    clearInterval(sourceInterval.current)
-    if (pipelineStage === 'gatherer') {
-      sourceStart.current = Date.now()
-      setSourceCount(0)
-      sourceInterval.current = setInterval(() => {
-        const elapsed = (Date.now() - sourceStart.current) / 1000
-        const count = Math.min(3, Math.floor((elapsed / 35) * 4))
-        setSourceCount(count)
-      }, 500)
-    }
-    return () => clearInterval(sourceInterval.current)
   }, [pipelineStage])
 
   if (!pipelineStage) return null
@@ -117,6 +84,11 @@ export default function CrystalHUD() {
       <div style={{ position: 'fixed', top: '38%', left: '28%', ...baseText }}>
         <div>AGENT_STATUS</div>
         <div>{pipelineStage?.toUpperCase()}</div>
+        <div style={{ ...baseText, fontSize: '10px', opacity: 0.45, marginTop: '2px' }}>
+          {pipelineStage === 'gatherer' && 'SCANNING'}
+          {pipelineStage === 'synthesizer' && 'FORMING'}
+          {pipelineStage === 'critic' && 'VERIFYING'}
+        </div>
         {/* Connector line → right toward center */}
         <div
           style={{
@@ -149,39 +121,29 @@ export default function CrystalHUD() {
         />
       </div>
 
-      {/* BOTTOM LEFT — Gibberish cycling */}
+      {/* BOTTOM LEFT — Live Activity */}
       <div style={{ position: 'fixed', top: '62%', left: '24%', ...baseText }}>
-        <div>{gibberishLine}</div>
-        {/* Connector line → right toward center */}
-        <div
-          style={{
-            ...connectorBase,
-            top: '50%',
-            right: '-68px',
-          }}
-        />
+        <div style={{ fontSize: '11px', letterSpacing: '2px' }}>
+          {pipelineStage === 'gatherer' && (activeSource ?? '—')}
+          {pipelineStage === 'synthesizer' && 'SYNTHESIS FORMING'}
+          {pipelineStage === 'critic' && 'CLAIMS UNDER REVIEW'}
+        </div>
+        <div style={{ ...connectorBase, top: '50%', right: '-68px' }} />
       </div>
 
-      {/* BOTTOM RIGHT — Sources counter */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '60%',
-          right: '22%',
-          textAlign: 'right',
-          ...baseText,
-        }}
-      >
-        <div>SOURCES</div>
-        <div>{sourceCount}</div>
-        {/* Connector line → left toward center */}
-        <div
-          style={{
-            ...connectorBase,
-            top: '50%',
-            left: '-68px',
-          }}
-        />
+      {/* BOTTOM RIGHT — Stage-aware counter */}
+      <div style={{ position: 'fixed', top: '60%', right: '22%', textAlign: 'right', ...baseText }}>
+        <div>
+          {pipelineStage === 'gatherer' && 'FACTS'}
+          {pipelineStage === 'synthesizer' && 'CORPUS'}
+          {pipelineStage === 'critic' && 'FLAGS'}
+        </div>
+        <div>
+          {pipelineStage === 'gatherer' && sourceCount}
+          {pipelineStage === 'synthesizer' && findingCount}
+          {pipelineStage === 'critic' && flagCount}
+        </div>
+        <div style={{ ...connectorBase, top: '50%', left: '-68px' }} />
       </div>
     </div>
   )

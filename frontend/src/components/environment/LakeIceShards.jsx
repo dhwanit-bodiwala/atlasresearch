@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 function createSeededRandom(seed) {
   let s = seed % 2147483647
   if (s <= 0) s += 2147483646
-  return function() {
+  return function () {
     s = (s * 16807) % 2147483647
     return (s - 1) / 2147483646
   }
@@ -63,15 +63,14 @@ export default function LakeIceShards({ scrollProgress }) {
   const materialRef = useRef()
 
   const material = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
-      color: '#c8e0f0',
-      transmission: 0.35,
-      thickness: 0.3,
-      roughness: 0.15,
-      metalness: 0,
+    return new THREE.MeshStandardMaterial({
+      color: '#ddeef8',
+      roughness: 0.55,
+      metalness: 0.0,
       transparent: true,
       opacity: 0.82,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      envMapIntensity: 0.3,
     })
   }, [])
 

@@ -1,6 +1,14 @@
 import { useRef, useCallback } from 'react'
 import useAtlasStore from '../store/atlasStore'
 
+function extractDomain(url) {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch {
+    return url
+  }
+}
+
 export function useWebSocket() {
   const wsRef = useRef(null)
   const store = useAtlasStore.getState
@@ -33,8 +41,15 @@ export function useWebSocket() {
         case 'pipeline_started':
           break  // handled by specific agent events below
 
+        case 'agent_completed':
+          if (data?.agent === 'gatherer') {
+            s.setFindingCount(data?.fact_count ?? 0)
+          }
+          break
+
         case 'synthesizer_started':
           s.setPipelineStage('synthesizer')
+          s.ghostSources()
           break
 
         case 'critic_started':
@@ -45,9 +60,33 @@ export function useWebSocket() {
           // gatherer done, synthesizer next
           break
 
-        case 'source_started':
+        case 'source_started': {
+          const s = useAtlasStore.getState()
+          const domain = extractDomain(data?.url ?? '')
+          if (domain && s.sources.length < 7) {
+            s.addSource({
+              id: data?.url ?? domain,
+              domain,
+              state: 'fetching',
+              slot: s.sources.length,
+            })
+          }
+          s.setActiveSource(domain)
+          if (!s.pipelineStage) {
+            s.setPipelineStage('gatherer')
+            s.setCrystalState('FORMING')
+          }
+          break
+        }
+
+        case 'source_generation_completed': {
+          const s = useAtlasStore.getState()
+          s.updateSource(data?.url ?? '', { state: 'complete' })
+          s.incrementSourceCount()
+          // Fallthrough to set stage if needed
+        }
+
         case 'source_fetch_completed':
-        case 'source_generation_completed':
           // gatherer is running — set stage if not already set
           if (!s.pipelineStage) {
             s.setPipelineStage('gatherer')
@@ -75,6 +114,20 @@ export function useWebSocket() {
           if (data?.id) s.updateShard(data.id, { state: 'FLAGGED' })
           break
 
+        case 'memory_written':
+          if (data?.type === 'FLAGGED') {
+            s.incrementFlagCount()
+          } else if (data?.type === 'RAW_FINDING') {
+            s.incrementSourceCount()  // repurpose as fact counter during gatherer
+          }
+          break
+
+        case 'findings_retrieved':
+          if (s.pipelineStage === 'synthesizer' || data?.retrieved_count) {
+            s.setFindingCount(data?.retrieved_count ?? 0)
+          }
+          break
+
         // ── Scan line ───────────────────────────────────
         case 'scan_start':
           s.setScanLine(true, data?.y ?? 0)
@@ -88,9 +141,9 @@ export function useWebSocket() {
         case 'pipeline_completed':
         case 'research_complete':
           s.setResults(
-            data?.synthesis_id ?? null,
-            data?.processed_info ?? data?.summary ?? '',
-            data?.flagged ?? []
+            data?.output?.synthesis_id ?? null,
+            data?.output?.processed_info ?? '',
+            data?.output?.flagged_items ?? []
           )
           s.setCrystalState('EMERGED')
           s.setScene('emergence')

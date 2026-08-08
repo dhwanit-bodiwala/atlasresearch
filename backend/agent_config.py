@@ -97,7 +97,7 @@ system_prompts = {
 max_tokens = {
     "gatherer" : 1000,
     "synthesizer" : 900,
-    "critic" : 400,
+    "critic" : 900,
     "followup" : 850
 }
 

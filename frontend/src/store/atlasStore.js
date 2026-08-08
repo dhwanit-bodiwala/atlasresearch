@@ -33,6 +33,29 @@ const useAtlasStore = create((set, get) => ({
     flaggedItems: flags ?? []
   }),
 
+  // ── Sources ───────────────────────────────────────
+  sources: [],
+  addSource: (source) => set((s) => ({
+    sources: [...s.sources, source]
+  })),
+  updateSource: (id, patch) => set((s) => ({
+    sources: s.sources.map(src => src.id === id ? { ...src, ...patch } : src)
+  })),
+  ghostSources: () => set((s) => ({
+    sources: s.sources.map(src => ({ ...src, state: 'ghost' }))
+  })),
+  clearSources: () => set({ sources: [] }),
+
+  // ── HUD live data ─────────────────────────────────
+  activeSource: null,
+  setActiveSource: (domain) => set({ activeSource: domain }),
+  sourceCount: 0,
+  incrementSourceCount: () => set((s) => ({ sourceCount: s.sourceCount + 1 })),
+  findingCount: 0,
+  setFindingCount: (n) => set({ findingCount: n }),
+  flagCount: 0,
+  incrementFlagCount: () => set((s) => ({ flagCount: s.flagCount + 1 })),
+
   // ── Data Shards ───────────────────────────────────
   dataShards: [],
   addShard: (shard) => set((s) => {
@@ -76,6 +99,11 @@ const useAtlasStore = create((set, get) => ({
     synthesisId: null,
     processedInfo: null,
     flaggedItems: [],
+    sources: [],
+    activeSource: null,
+    sourceCount: 0,
+    findingCount: 0,
+    flagCount: 0,
     chatMessages: [],
   }),
 }))
