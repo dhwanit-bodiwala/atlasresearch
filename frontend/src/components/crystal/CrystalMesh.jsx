@@ -41,49 +41,6 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
     return found
   }, [scene])
 
-  const runicTexture = useMemo(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 512
-    canvas.height = 512
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, 512, 512)
-
-    const runeChars = [
-      'ᚷ','ᚨ','ᚦ','ᛖ','ᚱ','ᛊ','ᛏ','ᚺ','ᛁ','ᚾ','ᚲ','ᛃ','ᚠ','ᛚ','ᚢ','ᛞ',
-      'ᚾ','ᛟ','ᛗ','ᚡ','ᛒ','ᛈ','ᛉ','ᛜ','ᛝ','ᛞ','ᛟ','ᚩ','ᚪ','ᚫ','ᚬ','ᚭ',
-    ]
-
-    const FONT_SIZE = 7
-    const LINE_HEIGHT = 10
-    const CHAR_WIDTH = 8
-    ctx.font = `${FONT_SIZE}px serif`
-
-    for (let row = 0; row < Math.ceil(512 / LINE_HEIGHT); row++) {
-      for (let col = 0; col < Math.ceil(512 / CHAR_WIDTH); col++) {
-        // Skip ~55% of cells to leave breathing room (density ~45%)
-        if (Math.random() < 0.55) continue
-        
-        const char = runeChars[Math.floor(Math.random() * runeChars.length)]
-        const x = col * CHAR_WIDTH + (Math.random() - 0.5) * 2
-        const y = row * LINE_HEIGHT + (Math.random() - 0.5) * 2 + FONT_SIZE
-        
-        // Vary opacity per character for carved depth variation
-        const opacity = 0.92 + Math.random() * 0.08  // 0.92–1.0
-        ctx.fillStyle = `rgba(15, 25, 50, ${opacity})`
-        ctx.fillText(char, x, y)
-      }
-    }
-
-    // Add occasional slightly larger accent runes for depth
-    ctx.font = `10px serif`
-    for (let i = 0; i < 40; i++) {
-      const char = runeChars[Math.floor(Math.random() * runeChars.length)]
-      ctx.fillStyle = `rgba(10, 18, 40, 0.98)`
-      ctx.fillText(char, Math.random() * 500 + 6, Math.random() * 500 + 6)
-    }
-
-    return new THREE.CanvasTexture(canvas)
-  }, [])
 
   useFrame((state) => {
     if (!groupRef.current) return
@@ -125,19 +82,21 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
       {meshes.shell.map((mesh, i) => (
         <mesh key={`shell-${i}`} geometry={mesh.geometry}>
           <MeshTransmissionMaterial
-            transmission={0.15}
-            thickness={1.8}
-            roughness={0.25}
-            ior={1.31}
-            color="#8899aa"
-            envMapIntensity={0.4}
-            samples={1}
-            resolution={256}
-            frames={1}
-            flatShading={true}
+            transmission={0.92}
+            thickness={2.4}
+            roughness={0.08}
+            ior={1.45}
+            color="#c8d8e8"
+            envMapIntensity={1.2}
+            samples={2}
+            resolution={512}
+            frames={Infinity}
+            flatShading={false}
             normalMap={normalMap}
-            normalScale={[1.2, 1.2]}
+            normalScale={[0.6, 0.6]}
             roughnessMap={roughnessMap}
+            chromaticAberration={0.04}
+            anisotropy={0.15}
           />
         </mesh>
       ))}
@@ -152,23 +111,7 @@ export default function CrystalMesh({ crystalState = 'SEED', position = [0, 0, 0
           />
         </mesh>
       ))}
-      {falling && meshes.shell.map((mesh, i) => (
-        <mesh
-          key={`rune-overlay-${i}`}
-          geometry={mesh.geometry}
-          scale={1.02}
-        >
-          <meshBasicMaterial
-            map={runicTexture}
-            transparent
-            opacity={0.88}
-            depthWrite={false}
-            blending={THREE.NormalBlending}
-            alphaTest={0.01}
-            side={THREE.FrontSide}
-          />
-        </mesh>
-      ))}
+
     </group>
   )
 }

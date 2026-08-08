@@ -73,6 +73,12 @@ function FogController({ scrollProgress, ambientRef }) {
         scene.fog.far = THREE.MathUtils.lerp(scene.fog.far, 5, 0.04)
         scene.fog.color.lerp(new THREE.Color('#060a12'), 0.04)
       }
+    } else if (crystalState === 'EMERGED') {
+      scene.background && scene.background.lerp(new THREE.Color('#8a9aa8'), 0.025)
+      if (scene.fog) {
+        scene.fog.far = THREE.MathUtils.lerp(scene.fog.far, 320, 0.025)
+        scene.fog.color.lerp(new THREE.Color('#9aaab8'), 0.025)
+      }
     }
 
     // Dynamic exposure — dip at mid-scroll to kill sun glare
@@ -104,7 +110,7 @@ function FallSequencer({ crystalYRef, fallPhaseRef }) {
     }, null, 1.6)
 
     tl.to(crystalYRef.current, {
-      value: -0.4,
+      value: -5.5,
       duration: 1.4,
       ease: 'power2.in',
     }, 1.6)
@@ -138,6 +144,52 @@ function FallSequencer({ crystalYRef, fallPhaseRef }) {
   return null
 }
 
+function EmergenceSequencer({ crystalYRef, fallPhaseRef, scrollProgress }) {
+  const crystalState = useAtlasStore((s) => s.crystalState)
+  const hasRun = useRef(false)
+
+  useEffect(() => {
+    if (crystalState !== 'EMERGED') return
+    if (hasRun.current) return
+    hasRun.current = true
+
+    scrollProgress.current = 1
+
+    // Crystal enters TundraScene at water level
+    crystalYRef.current.value = -5.5
+    fallPhaseRef.current = 'emergence_rise'
+
+    const tl = gsap.timeline()
+
+    tl.to(crystalYRef.current, {
+      value: 0,
+      duration: 5.0,
+      ease: 'power2.out',
+    }, 0)
+
+    tl.call(() => {
+      fallPhaseRef.current = 'emergence_breach'
+    }, null, 5.0)
+
+    tl.call(() => {
+      fallPhaseRef.current = 'emergence_settle'
+    }, null, 5.4)
+
+    tl.to(crystalYRef.current, {
+      value: 9,
+      duration: 1.5,
+      ease: 'power1.out',
+    }, 5.4)
+
+    tl.call(() => {
+      fallPhaseRef.current = null
+    }, null, 6.9)
+
+  }, [crystalState])
+
+  return null
+}
+
 function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, fallPhaseRef }) {
   const crystalState = useAtlasStore((s) => s.crystalState)
   const ambientRef = useRef()
@@ -165,6 +217,7 @@ function SceneContents({ scrollProgress, targetProgress, isLowEnd, crystalYRef, 
       <CameraRig scrollProgress={scrollProgress} targetProgress={targetProgress} crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} />
 
       <FallSequencer crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} />
+      <EmergenceSequencer crystalYRef={crystalYRef} fallPhaseRef={fallPhaseRef} scrollProgress={scrollProgress} />
 
       <FogController scrollProgress={scrollProgress} ambientRef={ambientRef} />
 

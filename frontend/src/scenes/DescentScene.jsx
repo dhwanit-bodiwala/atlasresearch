@@ -1,17 +1,19 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment } from '@react-three/drei'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import gsap from 'gsap'
 import * as THREE from 'three'
 import useAtlasStore from '../store/atlasStore'
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import CrystalMesh from '../components/crystal/CrystalMesh'
 import AmbientParticles from '../components/environment/AmbientParticles'
 import GodRays from '../components/environment/GodRays'
 import CrystalHUD from '../components/ui/CrystalHUD'
 
-function ZoneAtmosphere() {
+function ZoneAtmosphere({ crystalYRef }) {
   const pipelineStage = useAtlasStore((s) => s.pipelineStage)
+  const currentScene = useAtlasStore((s) => s.currentScene)
   const ambientRef = useRef()
   const targetFog = useRef(new THREE.Color('#9ec4d4'))
   const densityTarget = useRef(0.022)
@@ -32,18 +34,49 @@ function ZoneAtmosphere() {
   }, [pipelineStage])
 
   useFrame(({ scene }) => {
-    if (scene.fog) {
-      scene.fog.color.lerp(targetFog.current, 0.008)
-      scene.fog.density += (densityTarget.current - scene.fog.density) * 0.008
+    if (!scene.fog) return
+
+    if (currentScene === 'emergence' && crystalYRef?.current) {
+      const y = crystalYRef.current.value
+      if (y > -8) {
+        targetFog.current.set('#9ec4d4')
+        densityTarget.current = 0.022
+      } else if (y > -21) {
+        targetFog.current.set('#1a3a5a')
+        densityTarget.current = 0.038
+      } else {
+        targetFog.current.set('#080418')
+        densityTarget.current = 0.06
+      }
     }
+
+    scene.fog.color.lerp(targetFog.current, 0.008)
+    scene.fog.density += (densityTarget.current - scene.fog.density) * 0.008
   })
 
   return <ambientLight ref={ambientRef} color="#8ab8cc" intensity={1.8} />
 }
 
-function EnvSphere() {
+const ZONE_COLORS = {
+  gatherer:    { top: '#d8eaf2', mid: '#9ec4d4', bot: '#7aafc2' },
+  synthesizer: { top: '#0a1828', mid: '#0d2035', bot: '#081525' },
+  critic:      { top: '#080418', mid: '#050310', bot: '#0a0520' },
+}
+
+function getZoneFromY(y) {
+  if (y > -8) return 'gatherer'
+  if (y > -21) return 'synthesizer'
+  return 'critic'
+}
+
+function EnvSphere({ crystalYRef }) {
   const meshRef = useRef()
   const pipelineStage = useAtlasStore(s => s.pipelineStage)
+  const currentScene = useAtlasStore(s => s.currentScene)
+
+  const targetTop = useRef(new THREE.Color('#d8eaf2'))
+  const targetMid = useRef(new THREE.Color('#9ec4d4'))
+  const targetBot = useRef(new THREE.Color('#7aafc2'))
 
   const uniforms = useRef({
     uTime: { value: 0 },
@@ -54,22 +87,34 @@ function EnvSphere() {
 
   useEffect(() => {
     if (pipelineStage === 'gatherer') {
-      uniforms.current.uTopColor.value.set('#d8eaf2')
-      uniforms.current.uMidColor.value.set('#9ec4d4')
-      uniforms.current.uBotColor.value.set('#7aafc2')
+      targetTop.current.set('#d8eaf2')
+      targetMid.current.set('#9ec4d4')
+      targetBot.current.set('#7aafc2')
     } else if (pipelineStage === 'synthesizer') {
-      uniforms.current.uTopColor.value.set('#0a1828')
-      uniforms.current.uMidColor.value.set('#0d2035')
-      uniforms.current.uBotColor.value.set('#081525')
+      targetTop.current.set('#0a1828')
+      targetMid.current.set('#0d2035')
+      targetBot.current.set('#081525')
     } else if (pipelineStage === 'critic') {
-      uniforms.current.uTopColor.value.set('#080418')
-      uniforms.current.uMidColor.value.set('#050310')
-      uniforms.current.uBotColor.value.set('#0a0520')
+      targetTop.current.set('#080418')
+      targetMid.current.set('#050310')
+      targetBot.current.set('#0a0520')
     }
   }, [pipelineStage])
 
   useFrame((_, delta) => {
     uniforms.current.uTime.value += delta
+
+    if (currentScene === 'emergence' && crystalYRef?.current) {
+      const zone = getZoneFromY(crystalYRef.current.value)
+      const colors = ZONE_COLORS[zone]
+      targetTop.current.set(colors.top)
+      targetMid.current.set(colors.mid)
+      targetBot.current.set(colors.bot)
+    }
+
+    uniforms.current.uTopColor.value.lerp(targetTop.current, 0.008)
+    uniforms.current.uMidColor.value.lerp(targetMid.current, 0.008)
+    uniforms.current.uBotColor.value.lerp(targetBot.current, 0.008)
   })
 
   return (
@@ -182,9 +227,58 @@ function SpeedStreaks({ crystalYRef }) {
 }
 
 function DescentInner({ crystalYRef }) {
+  const currentScene = useAtlasStore((s) => s.currentScene)
+
   useFrame((_, delta) => {
+    if (currentScene !== 'descent') return
     crystalYRef.current.value -= delta * 3.5
     if (crystalYRef.current.value < -34) crystalYRef.current.value = 4
+  })
+
+  return null
+}
+
+function ResurfaceInner({ crystalYRef, onBreachFlash }) {
+  const currentScene = useAtlasStore((s) => s.currentScene)
+  const setScene = useAtlasStore((s) => s.setScene)
+  const setCrystalState = useAtlasStore((s) => s.setCrystalState)
+  const tweenRef = useRef(null)
+  const breachFlashed = useRef(false)
+
+  useEffect(() => {
+    if (currentScene !== 'emergence') {
+      breachFlashed.current = false
+      if (tweenRef.current) {
+        tweenRef.current.kill()
+        tweenRef.current = null
+      }
+      return
+    }
+
+    tweenRef.current = gsap.to(crystalYRef.current, {
+      value: 4,
+      duration: 3.5,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        setScene('entry')
+        setCrystalState('EMERGED')
+      },
+    })
+
+    return () => {
+      if (tweenRef.current) {
+        tweenRef.current.kill()
+        tweenRef.current = null
+      }
+    }
+  }, [currentScene, crystalYRef, setScene, setCrystalState])
+
+  useFrame(() => {
+    if (currentScene !== 'emergence') return
+    if (crystalYRef.current.value > 0 && !breachFlashed.current) {
+      breachFlashed.current = true
+      onBreachFlash?.()
+    }
   })
 
   return null
@@ -238,6 +332,13 @@ function PipelineLabel() {
 
 export default function DescentScene() {
   const crystalYRef = useRef({ value: 4 })
+  const [breachFlash, setBreachFlash] = useState(false)
+
+  const handleBreachFlash = () => {
+    setBreachFlash(true)
+    // After the CSS transition finishes, unmount the overlay
+    setTimeout(() => setBreachFlash(false), 700)
+  }
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh',
@@ -251,10 +352,11 @@ export default function DescentScene() {
         <fogExp2 attach="fog" color="#9ec4d4" density={0.022} />
         <pointLight color="#ffffff" intensity={3.0} position={[0, 10, 5]} />
 
-        <EnvSphere />
-        <ZoneAtmosphere />
+        <EnvSphere crystalYRef={crystalYRef} />
+        <ZoneAtmosphere crystalYRef={crystalYRef} />
         <Environment preset="dawn" background={false} />
         <DescentInner crystalYRef={crystalYRef} />
+        <ResurfaceInner crystalYRef={crystalYRef} onBreachFlash={handleBreachFlash} />
         <DescentCamera crystalYRef={crystalYRef} />
         <CrystalMesh crystalState="FORMING" position={[0, 0, 0]} scale={2.5} crystalYRef={crystalYRef} falling={true} />
         <ParallaxDust crystalYRef={crystalYRef} />
@@ -269,9 +371,35 @@ export default function DescentScene() {
             luminanceSmoothing={0.9}
             mipmapBlur
           />
+          <ChromaticAberration
+            blendFunction={BlendFunction.NORMAL}
+            offset={[0.0012, 0.0008]}
+          />
           <Vignette offset={0.3} darkness={0.6} blendFunction={BlendFunction.NORMAL} />
         </EffectComposer>
       </Canvas>
+
+      {breachFlash && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'white',
+            pointerEvents: 'none',
+            zIndex: 50,
+            opacity: 0,
+            transition: 'opacity 0.6s ease',
+            animation: 'breachFlash 0.6s ease forwards',
+          }}
+        />
+      )}
+
+      <style>{`
+        @keyframes breachFlash {
+          0% { opacity: 0.9; }
+          100% { opacity: 0; }
+        }
+      `}</style>
 
       <PipelineLabel />
       <CrystalHUD />

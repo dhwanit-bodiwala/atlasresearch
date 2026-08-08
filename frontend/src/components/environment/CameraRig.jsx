@@ -11,6 +11,9 @@ const END_TARGET = new THREE.Vector3(0, 8, 0)
 const FOLLOW_PHASES = new Set(['follow'])
 const WATER_ENTRY_PHASES = new Set(['water_entry', 'ripple_1', 'ripple_2', 'ripple_3'])
 const PARALLEL_PHASES = new Set(['parallel'])
+const EMERGENCE_RISE_PHASES = new Set(['emergence_rise'])
+const EMERGENCE_BREACH_PHASES = new Set(['emergence_breach'])
+const EMERGENCE_SETTLE_PHASES = new Set(['emergence_settle'])
 
 export default function CameraRig({ scrollProgress, targetProgress, crystalYRef = null, fallPhaseRef = null }) {
   const { camera } = useThree()
@@ -28,6 +31,9 @@ export default function CameraRig({ scrollProgress, targetProgress, crystalYRef 
     if (phase && FOLLOW_PHASES.has(phase)) desiredMode = 'follow'
     if (phase && WATER_ENTRY_PHASES.has(phase)) desiredMode = 'water_entry'
     if (phase && PARALLEL_PHASES.has(phase)) desiredMode = 'parallel'
+    if (phase && EMERGENCE_RISE_PHASES.has(phase)) desiredMode = 'emergence_rise'
+    if (phase && EMERGENCE_BREACH_PHASES.has(phase)) desiredMode = 'emergence_breach'
+    if (phase && EMERGENCE_SETTLE_PHASES.has(phase)) desiredMode = 'emergence_settle'
 
     // Only reset blend when mode actually changes (not on ripple sub-phase changes)
     if (desiredMode !== camMode.current) {
@@ -97,6 +103,38 @@ export default function CameraRig({ scrollProgress, targetProgress, crystalYRef 
       camera.position.x = THREE.MathUtils.lerp(camera.position.x, 5, 0.04 + b * 0.04)
       camera.position.y = THREE.MathUtils.lerp(prevY, cy + 1, b)
       camera.position.z = THREE.MathUtils.lerp(prevZ, 10, b)
+      camera.lookAt(0, cy, 0)
+      return
+    }
+
+    if (camMode.current === 'emergence_rise' && crystalYRef?.current) {
+      const cy = crystalYRef.current.value
+      // Camera emerges with the crystal — low, close, like it broke surface together
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.05)
+      const riseTargetY = Math.max(cy + 1.5, 3.5)
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, riseTargetY, 0.035)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 16, 0.035)
+      camera.lookAt(0, cy + 0.5, 0)
+      return
+    }
+
+    if (camMode.current === 'emergence_breach' && crystalYRef?.current) {
+      const cy = crystalYRef.current.value
+      // Slight recoil as crystal breaks surface — Z nudges back just a touch
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.07)
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, cy + 2, 0.07)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, 20, 0.1)
+      camera.lookAt(0, cy, 0)
+      return
+    }
+
+    if (camMode.current === 'emergence_settle' && crystalYRef?.current) {
+      const cy = crystalYRef.current.value
+      // Crystal floats up to Y=9, camera drifts back toward END_POS (0, 5, 28)
+      // Slow lerp (0.018) — camera wades backward, world opens up gradually
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, END_POS.x, 0.018)
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, END_POS.y, 0.018)
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, END_POS.z, 0.018)
       camera.lookAt(0, cy, 0)
       return
     }
